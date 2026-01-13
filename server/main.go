@@ -9,7 +9,6 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
@@ -337,81 +336,45 @@ func main() {
 	http.HandleFunc("/feedback/farmshop", handleFarmshopFeedback)
 	http.HandleFunc("/feedback/experience", handleExperienceFeedback)
 	http.HandleFunc("/feedback/thanks", handleFeedbackThanks)
-	http.HandleFunc("/admin/feedback", handleAdminFeedback)
+	http.HandleFunc("/admin/feedback", handleAdminFeedbackNew)
 	http.HandleFunc("/admin/content", handleAdminContent)
 
-	// API Routes
-	http.HandleFunc("/api/adopt", handleAdopt)
-	http.HandleFunc("/api/confirm-payment", handleConfirmPayment)
-	http.HandleFunc("/api/customers", handleGetCustomers)
-	http.HandleFunc("/api/activity", handleGetActivity)
-	http.HandleFunc("/api/stats", handleGetStats)
-	http.HandleFunc("/api/feedback", handleSubmitFeedback)
-	http.HandleFunc("/api/feedback/stats", handleFeedbackStats)
-	http.HandleFunc("/api/content", handleContentAPI)
-	http.HandleFunc("/api/content/", handleContentAPI)
-	http.HandleFunc("/api/config", handleGetConfig)
-
-	// Data Export Routes (for future integration with Google Sheets, Airtable, n8n)
-	http.HandleFunc("/api/export/customers", handleExportCustomersCSV)
-	http.HandleFunc("/api/export/feedback", handleExportFeedbackCSV)
-	http.HandleFunc("/api/export/activity", handleExportActivityCSV)
-
-	// Serve static files (JS, payment.html, success.html, admin.html, etc.)
-	clientDir := "../client"
-	if _, err := os.Stat(clientDir); os.IsNotExist(err) {
-		clientDir = "client"
-	}
-	if _, err := os.Stat(clientDir); os.IsNotExist(err) {
-		ex, _ := os.Executable()
-		clientDir = filepath.Join(filepath.Dir(ex), "..", "client")
-	}
-	fs := http.FileServer(http.Dir(clientDir))
-	http.Handle("/static/", http.StripPrefix("/static/", fs))
-
-	// Also serve specific static pages directly
-	http.HandleFunc("/payment.html", func(w http.ResponseWriter, r *http.Request) {
-		http.ServeFile(w, r, filepath.Join(clientDir, "payment.html"))
-	})
-	http.HandleFunc("/success.html", func(w http.ResponseWriter, r *http.Request) {
-		http.ServeFile(w, r, filepath.Join(clientDir, "success.html"))
-	})
-	http.HandleFunc("/admin.html", func(w http.ResponseWriter, r *http.Request) {
-		http.ServeFile(w, r, filepath.Join(clientDir, "admin.html"))
-	})
-	http.HandleFunc("/cancel.html", func(w http.ResponseWriter, r *http.Request) {
-		http.ServeFile(w, r, filepath.Join(clientDir, "cancel.html"))
-	})
+	// New Admin Routes
+	http.HandleFunc("/admin", handleAdminDashboard)
+	http.HandleFunc("/admin/customers", handleAdminCustomers)
+	http.HandleFunc("/admin/messages", handleAdminMessages)
+	http.HandleFunc("/admin/updates", handleAdminUpdates)
+	http.HandleFunc("/admin/calender", handleAdminCalender)
 
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8080"
 	}
-	fmt.Printf("🍎 Öfvergårds Server starting on port %s...\n", port)
-	fmt.Println("   Open http://localhost:8080 in your browser")
-	fmt.Println("")
-	fmt.Println("   📄 Pages:")
-	fmt.Println("      Products: http://localhost:8080/products")
-	fmt.Println("      Adopt a tree: http://localhost:8080/adopt")
-	fmt.Println("")
-	fmt.Println("   🔧 Admin:")
-	fmt.Println("      Dashboard: http://localhost:8080/admin.html")
-	fmt.Println("      Feedback: http://localhost:8080/admin/feedback")
-	fmt.Println("      Content editor: http://localhost:8080/admin/content")
-	fmt.Println("")
-	fmt.Println("   📋 Surveys:")
-	fmt.Println("      Farm Shop: http://localhost:8080/feedback/farmshop")
-	fmt.Println("      Experience: http://localhost:8080/feedback/experience")
-	fmt.Println("")
-	fmt.Println("   📥 Data Export (CSV):")
-	fmt.Println("      Customers: http://localhost:8080/api/export/customers")
-	fmt.Println("      Feedback: http://localhost:8080/api/export/feedback")
-	fmt.Println("      Activity: http://localhost:8080/api/export/activity")
-	fmt.Println("")
+	log.Printf("🍎 Öfvergårds Server starting on port %s...", port)
 	log.Fatal(http.ListenAndServe(":"+port, nil))
 }
 
-// handleFrontPage renders the company front page with dynamic content
+// handleAdminCalender renders the admin calender page
+func handleAdminCalender(w http.ResponseWriter, r *http.Request) {
+	data := struct {
+		Title     string
+		ActiveNav string
+	}{
+		Title:     "Kalenteri",
+		ActiveNav: "calender",
+	}
+
+	adminTemplates := template.Must(template.New("").Funcs(templateFuncs).ParseFiles(
+		"templates/admin-base.html",
+		"templates/admin-calender.html",
+	))
+	err := adminTemplates.ExecuteTemplate(w, "admin-base", data)
+	if err != nil {
+		log.Printf("Template error: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+	}
+}
+
 func handleFrontPage(w http.ResponseWriter, r *http.Request) {
 	// Only handle exact "/" path
 	if r.URL.Path != "/" {
@@ -1027,4 +990,535 @@ func handleExportActivityCSV(w http.ResponseWriter, r *http.Request) {
 		writer.Write([]string{strconv.FormatInt(id, 10), custIDStr, action, message, createdAt})
 	}
 	writer.Flush()
+}
+
+// ============== NEW ADMIN INTERFACE ==============
+
+// AdminDashboardData holds data for the admin dashboard
+type AdminDashboardData struct {
+	Title      string
+	ActiveNav  string
+	Stats      AdminStats
+	Activities []AdminActivity
+}
+
+type AdminStats struct {
+	NewAdoptions   int
+	NewBookings    int
+	UnreadMessages int
+	NewFeedback    int
+}
+
+type AdminActivity struct {
+	Message   string
+	CreatedAt string
+	Source    string
+}
+
+// AdminCustomersData holds data for the customers page
+type AdminCustomersData struct {
+	Title     string
+	ActiveNav string
+	Summary   CustomerSummary
+	Customers []AdminCustomer
+}
+
+type CustomerSummary struct {
+	TreeAdopters           int
+	ExperienceParticipants int
+	Visitors               int
+}
+
+type AdminCustomer struct {
+	Name         string
+	Email        string
+	CustomerType string
+	Status       string
+	LastActivity string
+	Country      string
+}
+
+// AdminMessagesData holds data for the messages page
+type AdminMessagesData struct {
+	Title     string
+	ActiveNav string
+	Stats     MessageStats
+	Messages  []AdminMessage
+}
+
+type MessageStats struct {
+	NewCount     int
+	HandledCount int
+}
+
+type AdminMessage struct {
+	SenderName string
+	Email      string
+	Preview    string
+	Date       string
+	Status     string
+	Source     string
+}
+
+// AdminUpdatesData holds data for the orchard updates page
+type AdminUpdatesData struct {
+	Title     string
+	ActiveNav string
+	Stats     UpdateStats
+	Updates   []AdminUpdate
+}
+
+type UpdateStats struct {
+	Published int
+	Drafts    int
+}
+
+type AdminUpdate struct {
+	Title    string
+	Preview  string
+	Date     string
+	Status   string
+	Audience string // adopters, subscribers, safari, tasting
+}
+
+// AdminFeedbackNewData holds data for the new feedback overview
+type AdminFeedbackNewData struct {
+	Title      string
+	ActiveNav  string
+	FarmShop   FeedbackSection
+	Experience FeedbackSection
+}
+
+type FeedbackSection struct {
+	Total      int
+	LatestDate string
+	Samples    []FeedbackSample
+}
+
+type FeedbackSample struct {
+	Rating     int
+	Comment    string
+	Date       string
+	Experience string
+	Name       string
+	Country    string
+}
+
+// Mock data for admin pages
+var mockCustomers = []AdminCustomer{
+	{Name: "Maria Svensson", Email: "maria.s@example.com", CustomerType: "tree_adopter", Status: "active", LastActivity: "Jan 12, 2026", Country: "Sweden"},
+	{Name: "Erik Johansson", Email: "erik.j@example.com", CustomerType: "experience", Status: "new", LastActivity: "Jan 11, 2026", Country: "Finland"},
+	{Name: "Anna Lindberg", Email: "anna@example.com", CustomerType: "visitor", Status: "completed", LastActivity: "Jan 10, 2026", Country: "Germany"},
+	{Name: "Johan Berg", Email: "j.berg@example.com", CustomerType: "tree_adopter", Status: "active", LastActivity: "Jan 9, 2026", Country: "Finland"},
+	{Name: "Lisa Karlsson", Email: "lisa.k@example.com", CustomerType: "experience", Status: "completed", LastActivity: "Jan 5, 2026", Country: "Sweden"},
+	{Name: "Sofia Rossi", Email: "sofia.rossi@example.com", CustomerType: "visitor", Status: "active", LastActivity: "Jan 13, 2026", Country: "Italy"},
+}
+
+var mockFarmShopFeedback = []FeedbackSample{
+	{Rating: 5, Comment: "The apple juice was absolutely delicious. Best I've ever had!", Date: "Jan 11, 2026", Name: "Maria Svensson", Country: "Sweden"},
+	{Rating: 4, Comment: "Lovely products, friendly service. Would love more variety.", Date: "Jan 8, 2026", Name: "Lisa Karlsson", Country: "Sweden"},
+	{Rating: 5, Comment: "Bought gifts for the whole family. Everyone loved them!", Date: "Jan 3, 2026", Name: "Anna Lindberg", Country: "Germany"},
+}
+
+var mockExperienceFeedback = []FeedbackSample{
+	{Rating: 5, Comment: "The forest walk was magical. So peaceful and restorative.", Date: "Jan 10, 2026", Experience: "Forest Walk", Name: "Erik Johansson", Country: "Finland"},
+	{Rating: 5, Comment: "Best farm-to-table meal I've ever had. Authentic and delicious.", Date: "Jan 6, 2026", Experience: "Farm Dinner", Name: "Johan Berg", Country: "Finland"},
+	{Rating: 4, Comment: "Wonderful experience, though a bit cold! Bring warm clothes.", Date: "Dec 20, 2025", Experience: "Winter Walk", Name: "Anna Lindberg", Country: "Germany"},
+}
+
+var mockMessages = []AdminMessage{
+	{SenderName: "Anna Lindberg", Email: "anna@example.com", Preview: "Hi! I'm interested in adopting a tree for my parents as a gift. Is that possible?", Date: "Jan 12, 2026", Status: "new", Source: "contact"},
+	{SenderName: "Erik Johansson", Email: "erik.j@example.com", Preview: "Question about the forest walk experience - can children participate?", Date: "Jan 11, 2026", Status: "new", Source: "booking"},
+	{SenderName: "Maria Svensson", Email: "maria.s@example.com", Preview: "Thank you for the wonderful apple juice! When will you have more Collina available?", Date: "Jan 10, 2026", Status: "handled", Source: "contact"},
+	{SenderName: "Johan Berg", Email: "j.berg@example.com", Preview: "I'd like to book a farm visit for a small group of 6 people in February.", Date: "Jan 8, 2026", Status: "handled", Source: "booking"},
+	{SenderName: "Lisa Karlsson", Email: "lisa.k@example.com", Preview: "Do you ship apple juice internationally? I'm in Germany.", Date: "Jan 5, 2026", Status: "handled", Source: "contact"},
+}
+
+var mockAdminUpdates = []AdminUpdate{
+	// 2026 - Adopters
+	{Title: "Winter Pruning Complete", Preview: "The orchard is resting under a blanket of frost. We've finished pruning the apple trees this week...", Date: "Jan 10, 2026", Status: "published", Audience: "adopters"},
+	{Title: "Your Tree's New Year", Preview: "As 2026 begins, your adopted tree is dormant but healthy. Here's what's happening underground...", Date: "Jan 5, 2026", Status: "published", Audience: "adopters"},
+	{Title: "February Tree Update", Preview: "Planning the spring care schedule for your trees. Exciting changes coming...", Date: "Jan 13, 2026", Status: "draft", Audience: "adopters"},
+
+	// 2026 - Subscribers
+	{Title: "New Year Newsletter", Preview: "Happy New Year from Öfvergårds! Here's what we're planning for 2026...", Date: "Jan 2, 2026", Status: "published", Audience: "subscribers"},
+	{Title: "Winter Farm Shop Hours", Preview: "Our updated winter opening hours and new products in stock...", Date: "Jan 8, 2026", Status: "published", Audience: "subscribers"},
+	{Title: "Spring Bloom Preview", Preview: "A sneak peek at what we're planning for the spring newsletter...", Date: "Jan 13, 2026", Status: "draft", Audience: "subscribers"},
+
+	// 2026 - Safari
+	{Title: "Winter Orchard Tour", Preview: "Experience the peaceful beauty of our dormant orchard. Learn about winter tree care and pruning techniques...", Date: "Jan 7, 2026", Status: "published", Audience: "safari"},
+	{Title: "February Safari Dates", Preview: "Draft schedule for upcoming farm tours in February. Family-friendly sessions available...", Date: "Jan 12, 2026", Status: "draft", Audience: "safari"},
+	{Title: "Behind the Scenes Tour", Preview: "Ever wondered how we make our apple juice? New tour includes a visit to our pressing facility...", Date: "Jan 11, 2026", Status: "draft", Audience: "safari"},
+
+	// 2026 - Tasting
+	{Title: "New Vintage Release", Preview: "Our 2025 harvest apple juice is now ready! Come taste the difference...", Date: "Jan 9, 2026", Status: "published", Audience: "tasting"},
+	{Title: "Valentine's Tasting Event", Preview: "Join us for a romantic evening of apple juice and local cheese pairings...", Date: "Jan 12, 2026", Status: "draft", Audience: "tasting"},
+
+	// 2025 - Adopters
+	{Title: "First Snow of the Season", Preview: "Åland woke up to its first real snowfall today. The orchard looks magical...", Date: "Dec 15, 2025", Status: "published", Audience: "adopters"},
+	{Title: "Harvest Season Wrapped Up", Preview: "What a harvest! This year's apples were exceptional—crisp, sweet, and full of character...", Date: "Oct 28, 2025", Status: "published", Audience: "adopters"},
+	{Title: "Autumn Colors in the Orchard", Preview: "The leaves are turning and your tree looks stunning. Photo gallery inside...", Date: "Sep 20, 2025", Status: "published", Audience: "adopters"},
+	{Title: "Summer Growth Report", Preview: "Your tree has grown so much this summer! The apples are starting to form...", Date: "Jul 15, 2025", Status: "published", Audience: "adopters"},
+	{Title: "Spring Blossom Update", Preview: "The orchard is in full bloom! Your tree's flowers are looking beautiful...", Date: "May 10, 2025", Status: "published", Audience: "adopters"},
+
+	// 2025 - Subscribers
+	{Title: "Holiday Gift Guide", Preview: "Looking for the perfect gift? Our farm shop has you covered...", Date: "Nov 20, 2025", Status: "published", Audience: "subscribers"},
+	{Title: "Autumn at Öfvergårds", Preview: "The harvest is in full swing. Visit us for fresh-pressed juice and fall activities...", Date: "Sep 15, 2025", Status: "published", Audience: "subscribers"},
+	{Title: "Summer Newsletter", Preview: "Long days, warm nights, and plenty of farm activities. Here's what's happening...", Date: "Jun 20, 2025", Status: "published", Audience: "subscribers"},
+
+	// 2025 - Safari
+	{Title: "Winter Farm Safari Opens", Preview: "Bundle up and explore the orchard in winter. Hot apple cider included with every tour...", Date: "Dec 1, 2025", Status: "published", Audience: "safari"},
+	{Title: "Harvest Safari Special", Preview: "Pick your own apples and learn about different varieties on our autumn farm tours...", Date: "Oct 5, 2025", Status: "published", Audience: "safari"},
+	{Title: "Summer Orchard Tours", Preview: "See the apples growing! Our summer safaris show you the orchard at its most vibrant...", Date: "Jun 1, 2025", Status: "published", Audience: "safari"},
+	{Title: "Spring Blossom Safari", Preview: "Walk through thousands of apple blossoms. Our most beautiful tour of the year...", Date: "Apr 15, 2025", Status: "published", Audience: "safari"},
+
+	// 2025 - Tasting
+	{Title: "Holiday Tasting Event Recap", Preview: "Thank you to everyone who joined our mulled apple juice tasting last weekend...", Date: "Nov 28, 2025", Status: "published", Audience: "tasting"},
+	{Title: "Harvest Tasting Festival", Preview: "Celebrate the season with us! Fresh-pressed juice tastings every weekend in October...", Date: "Oct 1, 2025", Status: "published", Audience: "tasting"},
+	{Title: "Summer Tasting Evenings", Preview: "Join us for twilight tastings in the orchard. Chilled juice under the stars...", Date: "Jul 1, 2025", Status: "published", Audience: "tasting"},
+	{Title: "Spring Juice Launch", Preview: "Our new spring blend is here. Light, crisp, and refreshing...", Date: "Apr 20, 2025", Status: "published", Audience: "tasting"},
+}
+
+// handleAdminDashboard renders the main admin overview
+func handleAdminDashboard(w http.ResponseWriter, r *http.Request) {
+	// Only handle exact /admin path
+	if r.URL.Path != "/admin" && r.URL.Path != "/admin/" {
+		http.NotFound(w, r)
+		return
+	}
+
+	// Get real adoption count from database
+	var adoptionCount int
+	db.QueryRow(`SELECT COUNT(*) FROM customers WHERE created_at > datetime('now', '-7 days')`).Scan(&adoptionCount)
+
+	// Get real feedback count
+	var feedbackCount int
+	db.QueryRow(`SELECT COUNT(*) FROM feedback WHERE created_at > datetime('now', '-7 days')`).Scan(&feedbackCount)
+
+	// Build activities list from database + mock
+	activities := []AdminActivity{}
+
+	// Get recent real activity
+	rows, _ := db.Query(`SELECT action, message, created_at FROM activity_log ORDER BY created_at DESC LIMIT 5`)
+	if rows != nil {
+		defer rows.Close()
+		for rows.Next() {
+			var action, message, createdAt string
+			rows.Scan(&action, &message, &createdAt)
+			source := "adoption"
+			if strings.Contains(action, "feedback") {
+				source = "feedback"
+			} else if strings.Contains(action, "email") {
+				source = "adoption"
+			}
+			activities = append(activities, AdminActivity{
+				Message:   message,
+				CreatedAt: createdAt,
+				Source:    source,
+			})
+		}
+	}
+
+	// Add mock activities if we don't have enough real ones
+	mockActivities := []AdminActivity{
+		{Message: "Tree adopted by Maria Svensson (Sweden)", CreatedAt: "Jan 12, 2026 14:32", Source: "adoption"},
+		{Message: "Experience booking: Forest Walk by Erik Johansson (Finland)", CreatedAt: "Jan 11, 2026 10:15", Source: "booking"},
+		{Message: "Farm shop feedback: 'Best apple juice ever!' (5 stars)", CreatedAt: "Jan 11, 2026 09:22", Source: "feedback"},
+		{Message: "New contact message from Anna Lindberg (Germany)", CreatedAt: "Jan 10, 2026 16:45", Source: "message"},
+		{Message: "Tree adopted by Johan Berg (Finland)", CreatedAt: "Jan 9, 2026 11:30", Source: "adoption"},
+		{Message: "Experience booking: Farm Dinner by Lisa Karlsson (Sweden)", CreatedAt: "Jan 8, 2026 18:00", Source: "booking"},
+		{Message: "Feedback: 'Wonderful experience, though a bit cold!' (4 stars)", CreatedAt: "Jan 7, 2026 13:10", Source: "feedback"},
+		{Message: "Tree adopted by Sofia Rossi (Italy)", CreatedAt: "Jan 6, 2026 15:20", Source: "adoption"},
+		{Message: "New message: Shipping inquiry from Lisa Karlsson (Sweden)", CreatedAt: "Jan 5, 2026 09:55", Source: "message"},
+		{Message: "Experience booking: Winter Walk by Anna Lindberg (Germany)", CreatedAt: "Jan 4, 2026 17:40", Source: "booking"},
+	}
+
+	if len(activities) < 5 {
+		activities = append(activities, mockActivities[:5-len(activities)]...)
+	}
+
+	// Debug: print activities to log
+	log.Printf("[DEBUG] Activities sent to template: %v", activities)
+
+	data := AdminDashboardData{
+		Title:     "Admin Overview",
+		ActiveNav: "dashboard",
+		Stats: AdminStats{
+			NewAdoptions:   max(adoptionCount, 3),
+			NewBookings:    2,
+			UnreadMessages: 2,
+			NewFeedback:    max(feedbackCount, 4),
+		},
+		Activities: activities,
+	}
+
+	adminTemplates := template.Must(template.New("").Funcs(templateFuncs).ParseFiles(
+		"templates/admin-base.html",
+		"templates/admin-dashboard.html",
+	))
+	err := adminTemplates.ExecuteTemplate(w, "admin-base", data)
+	if err != nil {
+		log.Printf("Template error: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+	}
+}
+
+// handleAdminCustomers renders the customers overview
+func handleAdminCustomers(w http.ResponseWriter, r *http.Request) {
+
+	customers := []AdminCustomer{}
+	sort := r.URL.Query().Get("sort")
+	// Default sort is by last activity (date desc)
+	var orderBy string
+	switch sort {
+	case "name":
+		orderBy = "name COLLATE NOCASE ASC"
+	case "email":
+		orderBy = "email COLLATE NOCASE ASC"
+	case "country":
+		orderBy = "country COLLATE NOCASE ASC"
+	case "type":
+		orderBy = "customertype COLLATE NOCASE ASC"
+	case "status":
+		orderBy = "status COLLATE NOCASE ASC"
+	case "lastactivity":
+		orderBy = "created_at DESC"
+	default:
+		orderBy = "created_at DESC"
+	}
+
+	// Get real customers from database (add country and customertype columns if available)
+	query := "SELECT name, email, status, created_at, country, customertype FROM customers ORDER BY " + orderBy
+	rows, _ := db.Query(query)
+	if rows != nil {
+		defer rows.Close()
+		for rows.Next() {
+			var name, email, status, createdAt, country, customertype string
+			rows.Scan(&name, &email, &status, &createdAt, &country, &customertype)
+			customers = append(customers, AdminCustomer{
+				Name:         name,
+				Email:        email,
+				CustomerType: customertype,
+				Status:       mapStatus(status),
+				LastActivity: createdAt,
+				Country:      country,
+			})
+		}
+	}
+
+	// Add mock customers if we don't have enough
+	if len(customers) < 5 {
+		customers = append(customers, mockCustomers[:5-len(customers)]...)
+	}
+
+	// Sort the combined customers slice in Go (for mock data)
+	switch sort {
+	case "name":
+		sortSlice(customers, func(a, b AdminCustomer) bool { return strings.ToLower(a.Name) < strings.ToLower(b.Name) })
+	case "email":
+		sortSlice(customers, func(a, b AdminCustomer) bool { return strings.ToLower(a.Email) < strings.ToLower(b.Email) })
+	case "country":
+		sortSlice(customers, func(a, b AdminCustomer) bool { return strings.ToLower(a.Country) < strings.ToLower(b.Country) })
+	case "type":
+		sortSlice(customers, func(a, b AdminCustomer) bool {
+			return strings.ToLower(a.CustomerType) < strings.ToLower(b.CustomerType)
+		})
+	case "status":
+		sortSlice(customers, func(a, b AdminCustomer) bool { return strings.ToLower(a.Status) < strings.ToLower(b.Status) })
+	case "lastactivity":
+		sortSlice(customers, func(a, b AdminCustomer) bool { return a.LastActivity > b.LastActivity })
+	default:
+		// Default: sort by last activity descending
+		sortSlice(customers, func(a, b AdminCustomer) bool { return a.LastActivity > b.LastActivity })
+	}
+
+	// Count by type
+	treeCount := 0
+	expCount := 0
+	visitorCount := 0
+	for _, c := range customers {
+		switch c.CustomerType {
+		case "tree_adopter":
+			treeCount++
+		case "experience":
+			expCount++
+		default:
+			visitorCount++
+		}
+	}
+
+	data := AdminCustomersData{
+		Title:     "Customers & Adoptions",
+		ActiveNav: "customers",
+		Summary: CustomerSummary{
+			TreeAdopters:           treeCount,
+			ExperienceParticipants: expCount,
+			Visitors:               visitorCount,
+		},
+		Customers: customers,
+	}
+
+	adminTemplates := template.Must(template.New("").Funcs(templateFuncs).ParseFiles(
+		"templates/admin-base.html",
+		"templates/admin-customers.html",
+	))
+	err := adminTemplates.ExecuteTemplate(w, "admin-base", data)
+	if err != nil {
+		log.Printf("Template error: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+	}
+}
+
+// mapStatus converts internal status to display status
+func mapStatus(status string) string {
+	switch status {
+	case "interested":
+		return "new"
+	case "paid", "email_sent", "subscribed":
+		return "active"
+	default:
+		return status
+	}
+}
+
+// handleAdminMessages renders the messages overview
+func handleAdminMessages(w http.ResponseWriter, r *http.Request) {
+	// Get filter values from query
+	filterName := r.URL.Query().Get("name")
+	filterType := r.URL.Query().Get("type")
+	filterDate := r.URL.Query().Get("date")
+
+	// Filter messages
+	filtered := []AdminMessage{}
+	for _, m := range mockMessages {
+		if filterName != "" && !strings.Contains(strings.ToLower(m.SenderName), strings.ToLower(filterName)) {
+			continue
+		}
+		if filterType != "" && m.Source != filterType {
+			continue
+		}
+		if filterDate != "" && m.Date != "" {
+			// Assume date format is "Jan 12, 2026" in mock data
+			t, err := time.Parse("Jan 2, 2006", m.Date)
+			if err != nil || t.Format("2006-01-02") != filterDate {
+				continue
+			}
+		}
+		filtered = append(filtered, m)
+	}
+
+	newCount := 0
+	handledCount := 0
+	for _, m := range filtered {
+		if m.Status == "new" {
+			newCount++
+		} else {
+			handledCount++
+		}
+	}
+
+	data := struct {
+		Title      string
+		ActiveNav  string
+		Stats      MessageStats
+		Messages   []AdminMessage
+		FilterName string
+		FilterType string
+		FilterDate string
+	}{
+		Title:     "Messages",
+		ActiveNav: "messages",
+		Stats: MessageStats{
+			NewCount:     newCount,
+			HandledCount: handledCount,
+		},
+		Messages:   filtered,
+		FilterName: filterName,
+		FilterType: filterType,
+		FilterDate: filterDate,
+	}
+
+	adminTemplates := template.Must(template.New("").Funcs(templateFuncs).ParseFiles(
+		"templates/admin-base.html",
+		"templates/admin-messages.html",
+	))
+	err := adminTemplates.ExecuteTemplate(w, "admin-base", data)
+	if err != nil {
+		log.Printf("Template error: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+	}
+}
+
+// handleAdminUpdates renders the orchard updates overview
+func handleAdminUpdates(w http.ResponseWriter, r *http.Request) {
+	publishedCount := 0
+	draftCount := 0
+	for _, u := range mockAdminUpdates {
+		if u.Status == "published" {
+			publishedCount++
+		} else {
+			draftCount++
+		}
+	}
+
+	data := AdminUpdatesData{
+		Title:     "Orchard Updates",
+		ActiveNav: "updates",
+		Stats: UpdateStats{
+			Published: publishedCount,
+			Drafts:    draftCount,
+		},
+		Updates: mockAdminUpdates,
+	}
+
+	adminTemplates := template.Must(template.New("").Funcs(templateFuncs).ParseFiles(
+		"templates/admin-base.html",
+		"templates/admin-updates.html",
+	))
+	err := adminTemplates.ExecuteTemplate(w, "admin-base", data)
+	if err != nil {
+		log.Printf("Template error: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+	}
+}
+
+// handleAdminFeedbackNew renders the new feedback overview page
+func handleAdminFeedbackNew(w http.ResponseWriter, r *http.Request) {
+	// Get real feedback counts from database
+	var farmshopCount, experienceCount int
+	db.QueryRow(`SELECT COUNT(*) FROM feedback WHERE survey_type = 'farmshop'`).Scan(&farmshopCount)
+	db.QueryRow(`SELECT COUNT(*) FROM feedback WHERE survey_type = 'experience'`).Scan(&experienceCount)
+
+	data := AdminFeedbackNewData{
+		Title:     "Feedback Overview",
+		ActiveNav: "feedback",
+		FarmShop: FeedbackSection{
+			Total:      max(farmshopCount, 12),
+			LatestDate: "Jan 11, 2026",
+			Samples:    mockFarmShopFeedback,
+		},
+		Experience: FeedbackSection{
+			Total:      max(experienceCount, 8),
+			LatestDate: "Jan 10, 2026",
+			Samples:    mockExperienceFeedback,
+		},
+	}
+
+	adminTemplates := template.Must(template.New("").Funcs(templateFuncs).ParseFiles(
+		"templates/admin-base.html",
+		"templates/admin-feedback-new.html",
+	))
+	err := adminTemplates.ExecuteTemplate(w, "admin-base", data)
+	if err != nil {
+		log.Printf("Template error: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+	}
+}
+
+// max returns the larger of two integers
+func max(a, b int) int {
+	if a > b {
+		return a
+	}
+	return b
 }
