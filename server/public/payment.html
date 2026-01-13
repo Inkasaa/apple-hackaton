@@ -55,7 +55,7 @@
 
 <body class="text-gray-800 min-h-screen flex flex-col">
     <!-- Navigation -->
-    <nav class="bg-white/80 backdrop-blur-sm sticky top-0 z-50 border-b border-gray-100">
+    <nav id="simpleHeader" class="bg-white/80 backdrop-blur-sm sticky top-0 z-50 border-b border-gray-100">
         <div class="max-w-5xl mx-auto px-6 py-4">
             <div class="flex justify-between items-center">
                 <a href="/" class="text-xl font-bold text-green-brand">
@@ -101,6 +101,46 @@
         </div>
     </nav>
 
+    <!-- Navigation: Original Mode (Replica) -->
+    <nav id="originalHeader" class="hidden sticky top-0 z-50"
+        style="background-color: #751C1E; font-family: system-ui, sans-serif;">
+        <div class="max-w-6xl mx-auto px-4 py-4">
+            <div class="flex flex-col md:flex-row items-center justify-between gap-4">
+                <!-- Logo -->
+                <div class="flex-shrink-0">
+                    <a href="/">
+                        <img src="https://i0.wp.com/ofvergards.ax/wp-content/uploads/2020/08/%C3%96fverg%C3%A5rds_logo.png?fit=557%2C600&ssl=1"
+                            alt="Öfvergårds" class="h-16 w-auto">
+                    </a>
+                </div>
+
+                <!-- Desktop Links (Mirrored) -->
+                <div
+                    class="hidden md:flex flex-wrap justify-center gap-6 text-sm uppercase font-bold tracking-wide text-white">
+                    <a href="/"
+                        class="hover:text-gray-200 hover:underline decoration-[#D85F31] decoration-[3px] underline-offset-[6px] transition-colors">Start</a>
+                    <a href="/om-oss/"
+                        class="hover:text-gray-200 hover:underline decoration-[#D85F31] decoration-[3px] underline-offset-[6px] transition-colors">Om
+                        oss</a>
+                    <a href="/gardsbesok/"
+                        class="hover:text-gray-200 hover:underline decoration-[#D85F31] decoration-[3px] underline-offset-[6px] transition-colors">Gårdsbesök</a>
+                    <a href="/vara-produkter/"
+                        class="hover:text-gray-200 hover:underline decoration-[#D85F31] decoration-[3px] underline-offset-[6px] transition-colors">Våra
+                        produkter</a>
+                    <a href="/mitt-appeltrad/index.html"
+                        class="hover:text-gray-200 hover:underline decoration-[#D85F31] decoration-[3px] underline-offset-[6px] transition-colors">Mitt
+                        äppelträd</a>
+                    <a href="/kontakta-oss/"
+                        class="hover:text-gray-200 hover:underline decoration-[#D85F31] decoration-[3px] underline-offset-[6px] transition-colors">Kontakta
+                        oss</a>
+                </div>
+                <div class="md:hidden text-white text-xs uppercase tracking-widest">
+                    MENU
+                </div>
+            </div>
+        </div>
+    </nav>
+
     <!-- Main Content -->
     <main class="flex-1">
         <div class="max-w-xl mx-auto p-6">
@@ -131,22 +171,39 @@
             <div class="bg-white p-8 rounded-xl shadow-sm border border-gray-100">
                 <!-- Mock Payment Form -->
                 <div id="paymentForm">
-                    <h2 class="text-2xl font-bold mb-6 text-center text-green-brand">Complete Your Adoption</h2>
+                    <h2 class="text-2xl font-bold mb-6 text-center text-green-brand"><span
+                            id="pageTitleDisplay">Complete Payment</span></h2>
 
                     <!-- Order Summary -->
                     <div class="bg-green-50 p-4 rounded-lg mb-6 border border-green-100">
                         <h3 class="font-semibold text-green-800 mb-2 font-sans">Order Summary</h3>
                         <div class="flex justify-between text-sm font-sans">
-                            <span>Apple Tree Adoption (<span id="treeTypeDisplay">-</span>)</span>
+                            <span><span id="itemLabelDisplay">Item</span> (<span id="variantDisplay">-</span>)</span>
                             <span class="font-medium">€<span id="amountDisplay">0.00</span></span>
                         </div>
                         <div class="flex justify-between text-sm mt-1 text-gray-500 font-sans">
-                            <span>Adopter: <span id="nameDisplay">-</span></span>
+                            <span>Customer: <span id="nameDisplay">-</span></span>
                         </div>
+
+                        <!-- Promo Code Section -->
+                        <div class="mt-4 pt-3 border-t border-green-200">
+                            <div class="flex gap-2">
+                                <input type="text" id="promoCodeInput" placeholder="Promo Code"
+                                    class="border border-green-300 rounded px-2 py-1 text-sm w-full font-sans focus:outline-none focus:border-green-500 uppercase">
+                                <button onclick="applyPromoCode()"
+                                    class="bg-green-600 text-white text-xs px-3 py-1 rounded hover:bg-green-700 font-sans">Apply</button>
+                            </div>
+                            <p id="promoMessage" class="text-xs mt-1 hidden"></p>
+                        </div>
+
                         <div
                             class="border-t border-green-200 mt-3 pt-3 flex justify-between font-bold text-green-800 font-sans">
                             <span>Total</span>
-                            <span>€<span id="totalDisplay">0.00</span></span>
+                            <div class="text-right">
+                                <span id="originalPriceDisplay"
+                                    class="text-xs text-gray-400 line-through mr-1 hidden"></span>
+                                <span>€<span id="totalDisplay">0.00</span></span>
+                            </div>
                         </div>
                     </div>
 
@@ -207,26 +264,119 @@
         </div>
     </footer>
 
+    <!-- Header Switcher Toggle -->
+    <button id="headerToggleBtn" onclick="toggleHeaderMode()"
+        class="fixed bottom-4 right-4 bg-white border border-gray-200 shadow-lg p-3 rounded-full text-xs text-gray-500 hover:bg-gray-50 z-50 pointer-events-auto transition-transform hover:scale-110"
+        title="Switch Style">
+        🔄
+    </button>
+
     <script>
         function toggleMenu() {
             const menu = document.getElementById('mobileMenu');
             menu.classList.toggle('hidden');
         }
 
+        // Header Switch Logic
+        function toggleHeaderMode() {
+            const simpleHeader = document.getElementById('simpleHeader');
+            const originalHeader = document.getElementById('originalHeader');
+
+            if (simpleHeader.classList.contains('hidden')) {
+                // Switch to Simple
+                simpleHeader.classList.remove('hidden');
+                originalHeader.classList.add('hidden');
+                localStorage.setItem('headerMode', 'simple');
+            } else {
+                // Switch to Original
+                simpleHeader.classList.add('hidden');
+                originalHeader.classList.remove('hidden');
+                localStorage.setItem('headerMode', 'original');
+            }
+        }
+
+        // Init Header Mode
+        document.addEventListener('DOMContentLoaded', () => {
+            const mode = localStorage.getItem('headerMode');
+            if (mode === 'original') {
+                document.getElementById('simpleHeader').classList.add('hidden');
+                document.getElementById('originalHeader').classList.remove('hidden');
+            }
+        });
+
         // Get customer data from URL params (passed from form)
         const params = new URLSearchParams(window.location.search);
         const customerId = params.get('id');
         const customerName = params.get('name');
-        const treeType = params.get('tree');
-        const amount = params.get('amount') || '50.00';
+        const variant = params.get('tree') || params.get('item') || 'Standard'; // Support generic 'item' param or fallback to 'tree'
+        let amount = parseFloat(params.get('amount') || '50.00');
         const paymentType = params.get('type'); // 'visit' or null (adopt)
+
+        // Promo Code Logic
+        const promoCodes = {
+            'APPLE20': 0.20, // 20% off
+            'VISIT10': 0.10,  // 10% off
+            'HACKATON': 0.50  // 50% off
+        };
+        let currentDiscount = 0;
+
+        // Setup UI based on Type
+        if (paymentType === 'visit') {
+            document.getElementById('pageTitleDisplay').textContent = "Complete Booking";
+            document.getElementById('itemLabelDisplay').textContent = "Farm Visit";
+            // For visits, the 'variant' might be the tree type they visited or just generic
+        } else {
+            document.getElementById('pageTitleDisplay').textContent = "Complete Adoption";
+            document.getElementById('itemLabelDisplay').textContent = "Tree Adoption";
+        }
 
         // Display customer info
         document.getElementById('nameDisplay').textContent = customerName || 'Guest';
-        document.getElementById('treeTypeDisplay').textContent = treeType || 'Apple Tree';
-        document.getElementById('amountDisplay').textContent = amount;
-        document.getElementById('totalDisplay').textContent = amount;
-        document.getElementById('btnTotalDisplay').textContent = amount;
+        document.getElementById('variantDisplay').textContent = variant;
+
+        // Initial Price Display
+        updatePriceDisplay(amount);
+
+        function updatePriceDisplay(currentTotal) {
+            document.getElementById('amountDisplay').textContent = amount.toFixed(2); // Base amount always shows original? Or maybe we just update total.
+
+            // If discount applied, show strikethrough logic could be complex if we want to show base price vs discounted total separately.
+            // For simplicity, let's keep Base Item Price static, and update Total.
+
+            let finalTotal = currentTotal;
+            if (currentDiscount > 0) {
+                finalTotal = amount * (1 - currentDiscount);
+                document.getElementById('originalPriceDisplay').textContent = "€" + amount.toFixed(2);
+                document.getElementById('originalPriceDisplay').classList.remove('hidden');
+            } else {
+                document.getElementById('originalPriceDisplay').classList.add('hidden');
+            }
+
+            document.getElementById('totalDisplay').textContent = finalTotal.toFixed(2);
+            document.getElementById('btnTotalDisplay').textContent = finalTotal.toFixed(2);
+        }
+
+        function applyPromoCode() {
+            const input = document.getElementById('promoCodeInput');
+            const msg = document.getElementById('promoMessage');
+            const code = input.value.trim().toUpperCase();
+
+            if (promoCodes.hasOwnProperty(code)) {
+                currentDiscount = promoCodes[code];
+                msg.textContent = `Promo code applied: ${(currentDiscount * 100)}% Discount!`;
+                msg.classList.remove('hidden');
+                msg.classList.remove('text-red-500');
+                msg.classList.add('text-green-600');
+                updatePriceDisplay(amount); // Recalculate
+            } else {
+                currentDiscount = 0;
+                msg.textContent = "Invalid promo code.";
+                msg.classList.remove('hidden');
+                msg.classList.remove('text-green-600');
+                msg.classList.add('text-red-500');
+                updatePriceDisplay(amount); // Reset
+            }
+        }
 
         async function processPayment() {
             const paymentForm = document.getElementById('paymentForm');
@@ -242,11 +392,18 @@
             // MOCK: Call backend to confirm "payment"
             try {
                 let url = '/api/confirm-payment';
-                let body = { customerId: parseInt(customerId) };
+                // Pass final amount if needed, though mostly ID matters for mock
+                let body = {
+                    customerId: parseInt(customerId),
+                    amountPaid: parseFloat(document.getElementById('totalDisplay').textContent)
+                };
 
                 if (paymentType === 'visit') {
                     url = '/api/confirm-visit';
-                    body = { bookingId: parseInt(customerId) };
+                    body = {
+                        bookingId: parseInt(customerId),
+                        amountPaid: parseFloat(document.getElementById('totalDisplay').textContent)
+                    };
                 }
 
                 const response = await fetch(url, {
@@ -258,7 +415,7 @@
                 const result = await response.json();
                 if (result.success) {
                     // Redirect to success page with customer info
-                    window.location.href = `/success.html?id=${customerId}&name=${encodeURIComponent(customerName)}`;
+                    window.location.href = `/success.html?id=${customerId}&name=${encodeURIComponent(customerName)}&type=${paymentType || 'adopt'}`;
                 } else {
                     alert('Payment simulation failed. Please try again.');
                     paymentForm.classList.remove('hidden');
