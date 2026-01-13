@@ -4,154 +4,85 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard - Öfvergårds</title>
+    <title>Dashboard - Öfvergårds Admin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            margin: 0;
-            padding: 0;
-            background: #f4f6f8;
-        }
-
-        .sidebar {
-            width: 250px;
-            background: #2c3e50;
-            color: white;
-            height: 100vh;
-            position: fixed;
-            top: 0;
-            left: 0;
-            padding-top: 20px;
-        }
-
-        .sidebar h2 {
-            text-align: center;
-            margin-bottom: 30px;
-        }
-
-        .sidebar a {
-            display: block;
-            padding: 15px 20px;
-            color: #b8c7ce;
-            text-decoration: none;
-            font-size: 16px;
-        }
-
-        .sidebar a:hover,
-        .sidebar a.active {
-            background: #1a252f;
-            color: white;
-            border-left: 4px solid #3498db;
-        }
-
-        .main-content {
-            margin-left: 250px;
-            padding: 20px 40px;
-        }
-
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 30px;
-        }
-
-        .card-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 20px;
-        }
-
-        .card {
-            background: white;
-            padding: 25px;
-            border-radius: 8px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-            text-align: center;
-            transition: transform 0.2s;
-        }
-
-        .card:hover {
-            transform: translateY(-5px);
-        }
-
-        .card i {
-            font-size: 40px;
-            color: #3498db;
-            margin-bottom: 15px;
-        }
-
-        .card h3 {
-            margin: 10px 0;
-            color: #333;
-        }
-
-        .card p {
-            color: #666;
-            font-size: 14px;
-        }
-
-        .btn {
-            display: inline-block;
-            margin-top: 15px;
-            padding: 8px 20px;
-            background: #3498db;
-            color: white;
-            text-decoration: none;
-            border-radius: 4px;
-        }
-    </style>
 </head>
 
-<body>
+<body class="bg-gray-50 min-h-screen font-sans">
 
-    <div class="sidebar">
-        <h2>Öfvergårds Admin</h2>
-        <a href="/admin" class="active"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
-        <a href="/admin/visits"><i class="fas fa-calendar-check"></i> Besök & Bokningar</a>
-        <a href="/admin/newsletters"><i class="fas fa-envelope"></i> Nyhetsbrev</a>
-        <a href="/admin/feedback"><i class="fas fa-comments"></i> Feedback</a>
-        <a href="/"><i class="fas fa-external-link-alt"></i> Till Hemsidan</a>
-    </div>
-
-    <div class="main-content">
-        <div class="header">
-            <h1>Välkommen tillbaka, Admin!</h1>
-        </div>
-
-        <div class="card-grid">
-            <div class="card">
-                <i class="fas fa-calendar-check"></i>
-                <h3>Hantera Bokningar</h3>
-                <p>Skapa tider, se bokningar och hantera förfrågningar.</p>
-                <a href="/admin/visits" class="btn">Gå till Bokningar</a>
+    <!-- Header -->
+    <nav class="bg-white shadow-sm border-b">
+        <div class="max-w-6xl mx-auto px-6 py-4 flex justify-between items-center">
+            <div>
+                <h1 class="text-xl font-bold text-green-800">🍎 Öfvergårds Admin</h1>
+                <p class="text-xs text-gray-500">Hantera Gårdsbesök & Nyhetsbrev</p>
             </div>
-
-            <div class="card">
-                <i class="fas fa-envelope"></i>
-                <h3>Nyhetsbrev</h3>
-                <p>Skapa och skicka nyhetsbrev till dina kunder.</p>
-                <a href="/admin/newsletters" class="btn">Gå till Nyhetsbrev</a>
-            </div>
-
-            <div class="card">
-                <i class="fas fa-apple-alt"></i>
-                <h3>Adoptera Träd</h3>
-                <p>Hantera "Mitt Äppelträd" kunder och betalningar.</p>
-                <a href="/admin/customers" class="btn">Gå till Kunder</a>
-                <!-- Note: /admin/customers route might need verification if exists -->
-            </div>
-
-            <div class="card">
-                <i class="fas fa-comments"></i>
-                <h3>Feedback</h3>
-                <p>Läs och hantera feedback från besökare.</p>
-                <a href="/admin/feedback" class="btn">Gå till Feedback</a>
+            <div class="flex gap-4 items-center">
+                <a href="/" class="text-sm text-green-700 hover:underline">← Till Hemsidan</a>
             </div>
         </div>
-    </div>
+    </nav>
 
+    <main class="max-w-6xl mx-auto p-6">
+        <!-- Dashboard Grid -->
+        <h2 class="text-2xl font-bold text-gray-800 mb-6">Dashboard</h2>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+
+            <!-- Visits Card -->
+            <a href="/admin/visits" class="block group">
+                <div
+                    class="bg-white p-6 rounded-xl shadow-sm border hover:shadow-md transition-shadow h-full flex flex-col items-center text-center">
+                    <div
+                        class="w-16 h-16 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center text-2xl mb-4 group-hover:scale-110 transition-transform">
+                        <i class="fas fa-calendar-check"></i>
+                    </div>
+                    <h3 class="text-lg font-semibold text-gray-800">Hantera Bokningar</h3>
+                    <p class="text-sm text-gray-500 mt-2">Se bokningar, skapa tider och hantera förfrågningar.</p>
+                </div>
+            </a>
+
+            <!-- Newsletters Card -->
+            <a href="/admin/newsletters" class="block group">
+                <div
+                    class="bg-white p-6 rounded-xl shadow-sm border hover:shadow-md transition-shadow h-full flex flex-col items-center text-center">
+                    <div
+                        class="w-16 h-16 bg-green-50 text-green-600 rounded-full flex items-center justify-center text-2xl mb-4 group-hover:scale-110 transition-transform">
+                        <i class="fas fa-envelope"></i>
+                    </div>
+                    <h3 class="text-lg font-semibold text-gray-800">Nyhetsbrev</h3>
+                    <p class="text-sm text-gray-500 mt-2">Skapa och skicka nyhetsbrev till kunder.</p>
+                </div>
+            </a>
+
+            <!-- Adopt Card (Link) -->
+            <a href="/admin/trees" class="block group">
+                <div
+                    class="bg-white p-6 rounded-xl shadow-sm border hover:shadow-md transition-shadow h-full flex flex-col items-center text-center">
+                    <div
+                        class="w-16 h-16 bg-yellow-50 text-yellow-600 rounded-full flex items-center justify-center text-2xl mb-4 group-hover:scale-110 transition-transform">
+                        <i class="fas fa-apple-alt"></i>
+                    </div>
+                    <h3 class="text-lg font-semibold text-gray-800">Adoptera Träd</h3>
+                    <p class="text-sm text-gray-500 mt-2">Hantera adoptioner och kunder.</p>
+                </div>
+            </a>
+
+            <!-- Feedback Card -->
+            <a href="/admin/feedback" class="block group opacity-75">
+                <div
+                    class="bg-white p-6 rounded-xl shadow-sm border hover:shadow-md transition-shadow h-full flex flex-col items-center text-center">
+                    <div
+                        class="w-16 h-16 bg-purple-50 text-purple-600 rounded-full flex items-center justify-center text-2xl mb-4 group-hover:scale-110 transition-transform">
+                        <i class="fas fa-comments"></i>
+                    </div>
+                    <h3 class="text-lg font-semibold text-gray-800">Feedback</h3>
+                    <p class="text-sm text-gray-500 mt-2">Se inkomna meddelanden (Existerande System).</p>
+                </div>
+            </a>
+        </div>
+    </main>
 </body>
 
 </html>

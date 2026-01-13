@@ -5,239 +5,155 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Nyhetsbrev - Öfvergårds Admin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <!-- Quill CSS -->
     <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
-    <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            margin: 0;
-            padding: 0;
-            background: #f4f6f8;
-        }
-
-        .sidebar {
-            width: 250px;
-            background: #2c3e50;
-            color: white;
-            height: 100vh;
-            position: fixed;
-            top: 0;
-            left: 0;
-            padding-top: 20px;
-        }
-
-        .sidebar a {
-            display: block;
-            padding: 15px 20px;
-            color: #b8c7ce;
-            text-decoration: none;
-            font-size: 16px;
-        }
-
-        .sidebar a:hover,
-        .sidebar a.active {
-            background: #1a252f;
-            color: white;
-            border-left: 4px solid #3498db;
-        }
-
-        .main-content {
-            margin-left: 250px;
-            padding: 20px 40px;
-        }
-
-        .container {
-            max-width: 1000px;
-            margin: 0 auto;
-        }
-
-        .card {
-            background: white;
-            padding: 25px;
-            border-radius: 8px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-            margin-bottom: 25px;
-        }
-
-        h1,
-        h2 {
-            color: #333;
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
-            color: #555;
-        }
-
-        input[type="text"],
-        select {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            box-sizing: border-box;
-        }
-
-        #editor {
-            height: 300px;
-        }
-
-        .btn {
-            padding: 10px 20px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 16px;
-            color: white;
-        }
-
-        .btn-primary {
-            background-color: #3498db;
-        }
-
-        .btn-success {
-            background-color: #2ecc71;
-        }
-
-        .btn-secondary {
-            background-color: #95a5a6;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-
-        th,
-        td {
-            padding: 12px;
-            text-align: left;
-            border-bottom: 1px solid #ddd;
-        }
-
-        th {
-            background-color: #f8f9fa;
-            color: #333;
-        }
-
-        .badge {
-            padding: 5px 10px;
-            border-radius: 12px;
-            font-size: 12px;
-            color: white;
-        }
-
-        .badge-draft {
-            background-color: #f39c12;
-        }
-
-        .badge-sent {
-            background-color: #2ecc71;
-        }
-    </style>
 </head>
 
-<body>
+<body class="bg-gray-50 min-h-screen font-sans">
 
-    <div class="sidebar">
-        <h2 style="text-align:center; margin-bottom:30px;">Öfvergårds Admin</h2>
-        <a href="/admin"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
-        <a href="/admin/visits"><i class="fas fa-calendar-check"></i> Besök & Bokningar</a>
-        <a href="/admin/newsletters" class="active"><i class="fas fa-envelope"></i> Nyhetsbrev</a>
-        <a href="/admin/feedback"><i class="fas fa-comments"></i> Feedback</a>
-        <a href="/"><i class="fas fa-external-link-alt"></i> Till Hemsidan</a>
-    </div>
+    <!-- Header -->
+    <nav class="bg-white shadow-sm border-b">
+        <div class="max-w-6xl mx-auto px-6 py-4 flex justify-between items-center">
+            <div class="flex items-center gap-6">
+                <div>
+                    <h1 class="text-xl font-bold text-green-800">🍎 Öfvergårds Admin</h1>
+                </div>
+                <!-- Mini Nav -->
+                <div class="hidden md:flex gap-4 text-sm">
+                    <a href="/admin" class="text-gray-500 hover:text-green-800">Dashboard</a>
+                    <a href="/admin/visits" class="text-gray-500 hover:text-green-800">Besök</a>
+                    <a href="/admin/newsletters" class="font-semibold text-green-800">Nyhetsbrev</a>
+                    <a href="/admin/trees" class="text-gray-500 hover:text-green-800">Adoptera Träd</a>
+                </div>
+            </div>
+            <div class="flex gap-4 items-center">
+                <a href="/" class="text-sm text-green-700 hover:underline">← Till Hemsidan</a>
+            </div>
+        </div>
+    </nav>
 
-    <div class="main-content">
-        <div class="container">
-            <h1>Hantera Nyhetsbrev</h1>
+    <main class="max-w-6xl mx-auto p-6">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-2xl font-bold text-gray-800">Hantera Nyhetsbrev</h2>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
             <!-- Create/Edit Section -->
-            <div class="card">
-                <h2>Skapa Nytt Nyhetsbrev</h2>
-                <form id="newsletterForm">
-                    <input type="hidden" id="newsletterId">
-                    <div class="form-group">
-                        <label>Ämne</label>
-                        <input type="text" id="subject" required placeholder="Fyll i ämne...">
-                    </div>
+            <div class="lg:col-span-2">
+                <div class="bg-white rounded-xl shadow-sm border p-6">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4">Skapa / Redigera</h3>
+                    <form id="newsletterForm" class="space-y-4">
+                        <input type="hidden" id="newsletterId">
 
-                    <div class="form-group">
-                        <label>Mottagare (Filter)</label>
-                        <select id="filterCriteria">
-                            <option value="all">Alla Kunder</option>
-                            <option value="tree_owners">Äppelträdskunder</option>
-                            <option value="visit_customers">Besökskunder</option>
-                            <option value="safari">Endast Safari</option>
-                            <option value="tasting">Endast Mustprovning</option>
-                        </select>
-                    </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Ämne</label>
+                            <input type="text" id="subject" required placeholder="T.ex. Sommarhälsning från Öfvergårds"
+                                class="w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 border p-2">
+                        </div>
 
-                    <div class="form-group">
-                        <label>Innehåll</label>
-                        <div id="editor"></div>
-                    </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Mottagare (Filter)</label>
+                            <div class="relative">
+                                <select id="filterCriteria"
+                                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 border p-2 appearance-none bg-white">
+                                    <option value="all">Alla Kunder</option>
+                                    <option value="tree_owners">Äppelträdskunder</option>
+                                    <option value="visit_customers">Besökskunder</option>
+                                    <option value="safari">Endast Safari</option>
+                                    <option value="tasting">Endast Mustprovning</option>
+                                </select>
+                                <div
+                                    class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                                    <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg"
+                                        viewBox="0 0 20 20">
+                                        <path
+                                            d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
 
-                    <div style="display:flex; gap:10px;">
-                        <button type="button" class="btn btn-primary" onclick="saveDraft()">Spara Utkast</button>
-                        <button type="button" class="btn btn-success" onclick="sendNewsletter()">Skicka Nu</button>
-                        <button type="button" class="btn btn-secondary" onclick="resetForm()">Rensa</button>
-                    </div>
-                </form>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Innehåll</label>
+                            <div class="bg-white rounded-md border border-gray-300">
+                                <div id="editor" style="min-height: 250px; border:none;" class="rounded-b-md"></div>
+                            </div>
+                        </div>
+
+                        <div class="flex gap-3 pt-2">
+                            <button type="button" onclick="saveDraft()"
+                                class="flex-1 bg-gray-600 text-white py-2 px-4 rounded-md hover:bg-gray-700 transition-colors font-medium">Spara
+                                Utkast</button>
+                            <button type="button" onclick="sendNewsletter()"
+                                class="flex-1 bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700 transition-colors font-medium">Skicka
+                                Nu</button>
+                            <button type="button" onclick="resetForm()"
+                                class="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors">Rensa</button>
+                        </div>
+                    </form>
+                </div>
             </div>
 
             <!-- List Section -->
-            <div class="card">
-                <h2>Tidigare Nyhetsbrev</h2>
-                <div id="newsletterList">Laddar...</div>
+            <div class="lg:col-span-1">
+                <div class="bg-white rounded-xl shadow-sm border p-6 h-full">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4">Tidigare Nyhetsbrev</h3>
+                    <div id="newsletterList" class="space-y-4 max-h-[600px] overflow-y-auto pr-2">
+                        <p class="text-gray-500 text-sm italic">Laddar...</p>
+                    </div>
+                </div>
             </div>
         </div>
-    </div>
+    </main>
 
     <!-- Quill JS -->
     <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
     <script>
+        // Custom Quill Toolbar options could be added here
         var quill = new Quill('#editor', {
             theme: 'snow',
-            placeholder: 'Skriv ditt meddelande här...'
+            placeholder: 'Skriv ditt meddelande här...',
+            modules: {
+                toolbar: [
+                    [{ 'header': [1, 2, 3, false] }],
+                    ['bold', 'italic', 'underline'],
+                    [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+                    ['link', 'clean']
+                ]
+            }
         });
 
         async function loadNewsletters() {
             const res = await fetch('/api/newsletters');
             const list = await res.json();
+            const container = document.getElementById('newsletterList');
 
             if (list.length === 0) {
-                document.getElementById('newsletterList').innerHTML = '<p>Inga nyhetsbrev hittades.</p>';
+                container.innerHTML = '<p class="text-gray-500 text-sm">Inga nyhetsbrev hittades.</p>';
                 return;
             }
 
-            let html = '<table><thead><tr><th>Ämne</th><th>Status</th><th>Skapad</th><th>Skickad</th><th>Åtgärd</th></tr></thead><tbody>';
-            list.forEach(n => {
+            container.innerHTML = list.map(n => {
                 const created = new Date(n.createdAt).toLocaleDateString();
-                const sent = n.sentAt ? new Date(n.sentAt).toLocaleString() : '-';
-                const badgeClass = n.status === 'sent' ? 'badge-sent' : 'badge-draft';
+                const sent = n.sentAt ? new Date(n.sentAt).toLocaleDateString() : null;
+                const statusColor = n.status === 'sent' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800';
                 const label = n.status === 'sent' ? 'Skickad' : 'Utkast';
 
-                html += `<tr>
-                <td>${n.subject}</td>
-                <td><span class="badge ${badgeClass}">${label}</span></td>
-                <td>${created}</td>
-                <td>${sent}</td>
-                <td>
-                    ${n.status === 'draft' ? `<button onclick="editNewsletter(${n.id})" style="cursor:pointer; color:#3498db; border:none; background:none; text-decoration:underline;">Redigera</button>` : ''}
-                </td>
-            </tr>`;
-            });
-            html += '</tbody></table>'
-            document.getElementById('newsletterList').innerHTML = html;
+                return `
+                <div class="border border-gray-100 rounded-lg p-3 hover:bg-gray-50 transition-colors">
+                    <div class="flex justify-between items-start mb-1">
+                        <span class="text-xs font-semibold px-2 py-0.5 rounded-full ${statusColor}">${label}</span>
+                        <span class="text-xs text-gray-400">${sent || created}</span>
+                    </div>
+                    <h4 class="font-medium text-gray-800 text-sm mb-1 line-clamp-2">${n.subject}</h4>
+                    ${n.status === 'draft' ?
+                        `<button onclick="editNewsletter(${n.id})" class="text-xs text-blue-600 hover:text-blue-800 font-medium mt-1">Redigera</button>`
+                        : ''}
+                </div>`;
+            }).join('');
         }
 
         // Load on start
@@ -264,7 +180,7 @@
             if (result.success) {
                 alert('Utkast sparat!');
                 loadNewsletters();
-                if (data.id === 0) resetForm(); // Only reset if new
+                if (data.id === 0) resetForm();
             } else {
                 alert('Fel: ' + result.message);
             }
@@ -291,9 +207,23 @@
         }
 
         function editNewsletter(id) {
-            // Fetch specific logic or find in loaded list (simplification: find in DOM or reload)
-            // For now, let's just alert
-            alert('Redigeringsläge laddas (TODO: Populate form)');
+            // Need to fetch full content to edit, as the list might truncated or insufficient
+            // For now, simpler: we don't have a specific GET endpoint for one ID, but we have the list.
+            // Let's re-fetch list and find item (inefficient but works for small scale)
+            fetch('/api/newsletters').then(r => r.json()).then(list => {
+                const item = list.find(l => l.id === id);
+                if (item) {
+                    document.getElementById('newsletterId').value = item.id;
+                    document.getElementById('subject').value = item.subject;
+                    quill.root.innerHTML = item.content;
+                    // filterCriteria might be stored in JSON/Text but our simple backend stores it as string, hopefully matching values
+                    // If not stored properly, defaults to 'all'
+                    document.getElementById('filterCriteria').value = item.filterCriteria || 'all';
+
+                    // Scroll to top
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                }
+            });
         }
 
         function resetForm() {

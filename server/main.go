@@ -199,7 +199,8 @@ func main() {
 	http.HandleFunc("/admin/visits", handleAdminVisits)
 	http.HandleFunc("/admin/newsletters", handleAdminNewsletters)
 	http.HandleFunc("/api/inquiries/action", handleInquiryAction)
-	http.HandleFunc("/admin", handleAdminDashboard) // New main dashboard
+	http.HandleFunc("/admin", handleAdminDashboard)   // New main dashboard
+	http.HandleFunc("/admin/trees", handleAdminTrees) // Rent a Tree dashboard
 
 	// Serve Static Site (The Mirrored Site)
 	// We check if the file exists in public/, otherwise we check if it's an API or specific page
@@ -876,4 +877,8 @@ func handleAdminNewsletters(w http.ResponseWriter, r *http.Request) {
 func handleAdminDashboard(w http.ResponseWriter, r *http.Request) {
 	// Check auth if implemented (skipping for prototype)
 	tmpl.ExecuteTemplate(w, "admin-dashboard.html", nil)
+}
+
+func handleAdminTrees(w http.ResponseWriter, r *http.Request) {
+	tmpl.ExecuteTemplate(w, "admin-trees.html", nil)
 }

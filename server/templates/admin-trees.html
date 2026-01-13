@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="sv">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Adoptera Träd - Öfvergårds Admin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .status-interested {
+            background-color: #fef3c7;
+            color: #92400e;
+        }
+
+        .status-paid {
+            background-color: #dbeafe;
+            color: #1e40af;
+        }
+
+        .status-email_sent {
+            background-color: #e0e7ff;
+            color: #3730a3;
+        }
+
+        .status-subscribed {
+            background-color: #d1fae5;
+            color: #065f46;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-50 min-h-screen font-sans">
+
+    <!-- Header -->
+    <nav class="bg-white shadow-sm border-b">
+        <div class="max-w-6xl mx-auto px-6 py-4 flex justify-between items-center">
+            <div class="flex items-center gap-6">
+                <div>
+                    <h1 class="text-xl font-bold text-green-800">🍎 Öfvergårds Admin</h1>
+                </div>
+                <!-- Mini Nav -->
+                <div class="hidden md:flex gap-4 text-sm">
+                    <a href="/admin" class="text-gray-500 hover:text-green-800">Dashboard</a>
+                    <a href="/admin/visits" class="text-gray-500 hover:text-green-800">Besök</a>
+                    <a href="/admin/newsletters" class="text-gray-500 hover:text-green-800">Nyhetsbrev</a>
+                    <a href="/admin/trees" class="font-semibold text-green-800">Adoptera Träd</a>
+                </div>
+            </div>
+            <div class="flex gap-4 items-center">
+                <a href="/" class="text-sm text-green-700 hover:underline">← Till Hemsidan</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-6xl mx-auto p-6">
+        <!-- Demo Notice -->
+        <div class="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-6">
+            <p class="text-sm text-orange-800">
+                <strong>Notera:</strong> Detta system hanterar adoption av träd och integrerar med Stripe/Swish
+                (Simulerat).
+            </p>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+            <div class="bg-white p-6 rounded-xl shadow-sm border">
+                <p class="text-sm text-gray-500">Totalt Antal Adoptioner</p>
+                <p id="statTotal" class="text-3xl font-bold text-gray-800">-</p>
+            </div>
+            <div class="bg-white p-6 rounded-xl shadow-sm border">
+                <p class="text-sm text-gray-500">Betalande Kunder</p>
+                <p id="statPaid" class="text-3xl font-bold text-green-600">-</p>
+            </div>
+            <div class="bg-white p-6 rounded-xl shadow-sm border">
+                <p class="text-sm text-gray-500">Prenumeranter</p>
+                <p id="statNewsletter" class="text-3xl font-bold text-blue-600">-</p>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Customers Table -->
+            <div class="lg:col-span-2">
+                <div class="bg-white rounded-xl shadow-sm border overflow-hidden">
+                    <div class="px-6 py-4 border-b bg-gray-50">
+                        <h2 class="font-semibold text-gray-800">Kunder</h2>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Kund
+                                    </th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Träd
+                                    </th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status
+                                    </th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                                        Nyhetsbrev</th>
+                                </tr>
+                            </thead>
+                            <tbody id="customerTable" class="bg-white divide-y divide-gray-200">
+                                <tr>
+                                    <td colspan="4" class="px-4 py-8 text-center text-gray-400">Laddar...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Activity Feed -->
+            <div class="lg:col-span-1">
+                <div class="bg-white rounded-xl shadow-sm border overflow-hidden">
+                    <div class="px-6 py-4 border-b bg-gray-50">
+                        <h2 class="font-semibold text-gray-800">Händelselogg</h2>
+                        <p class="text-xs text-gray-500">Senaste automatiska händelser</p>
+                    </div>
+                    <div id="activityFeed" class="divide-y divide-gray-100 max-h-96 overflow-y-auto">
+                        <div class="px-4 py-8 text-center text-gray-400 text-sm">Laddar...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Legend -->
+        <div class="mt-8 bg-white rounded-xl shadow-sm border p-6">
+            <h3 class="font-semibold text-gray-800 mb-4">Statusflöde (Hur det fungerar)</h3>
+            <div class="flex flex-wrap gap-4 items-center">
+                <div class="flex items-center gap-2">
+                    <span class="px-2 py-1 text-xs rounded-full status-interested">Intresserad</span>
+                    <span class="text-gray-400 text-xs text-bold">→</span>
+                    <span class="text-xs text-gray-500">Anmälde sig</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="px-2 py-1 text-xs rounded-full status-paid">Betald</span>
+                    <span class="text-gray-400 text-xs text-bold">→</span>
+                    <span class="text-xs text-gray-500">Betalning Mottagen</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="px-2 py-1 text-xs rounded-full status-email_sent">Mail Skickat</span>
+                    <span class="text-gray-400 text-xs text-bold">→</span>
+                    <span class="text-xs text-gray-500">Välkomstmail</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="px-2 py-1 text-xs rounded-full status-subscribed">Prenumerant</span>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Format status for display
+        function formatStatus(status) {
+            const labels = {
+                'interested': 'Intresserad',
+                'paid': 'Betald',
+                'email_sent': 'Mail Skickat',
+                'subscribed': 'Prenumerant'
+            };
+            return labels[status] || status;
+        }
+
+        // Format newsletter stage
+        function formatNewsletter(stage) {
+            const labels = {
+                'none': '—',
+                'welcome': 'Välkomstserien',
+                'monthly': 'Månadsbrev'
+            };
+            return labels[stage] || stage;
+        }
+
+        // Get action icon
+        function getActionIcon(action) {
+            const icons = {
+                'signup': '📝',
+                'payment': '💳',
+                'email': '✉️',
+                'newsletter': '📬'
+            };
+            return icons[action] || '🔹';
+        }
+
+        // Load stats
+        async function loadStats() {
+            try {
+                const resp = await fetch('/api/stats');
+                const stats = await resp.json();
+                document.getElementById('statTotal').textContent = stats.totalCustomers || 0;
+                document.getElementById('statPaid').textContent = stats.paidCustomers || 0;
+                document.getElementById('statNewsletter').textContent = stats.newsletterSubscribers || 0;
+            } catch (err) {
+                console.error('Error loading stats:', err);
+            }
+        }
+
+        // Load customers
+        async function loadCustomers() {
+            try {
+                const resp = await fetch('/api/customers');
+                const customers = await resp.json();
+                const table = document.getElementById('customerTable');
+
+                if (!customers || customers.length === 0) {
+                    table.innerHTML = '<tr><td colspan="4" class="px-4 py-8 text-center text-gray-400">Inga kunder än.</td></tr>';
+                    return;
+                }
+
+                table.innerHTML = customers.map(c => `
+                    <tr class="hover:bg-gray-50 transition-colors">
+                        <td class="px-4 py-3">
+                            <div class="text-sm font-medium text-gray-900">${c.name}</div>
+                            <div class="text-xs text-gray-500">${c.email}</div>
+                            <div class="text-xs text-gray-400">${c.country}</div>
+                        </td>
+                        <td class="px-4 py-3 text-sm text-gray-600">${c.treeType}</td>
+                        <td class="px-4 py-3">
+                            <span class="px-2 py-1 text-xs rounded-full status-${c.status}">
+                                ${formatStatus(c.status)}
+                            </span>
+                        </td>
+                        <td class="px-4 py-3 text-xs text-gray-500">${formatNewsletter(c.newsletterStage)}</td>
+                    </tr>
+                `).join('');
+            } catch (err) {
+                console.error('Error loading customers:', err);
+            }
+        }
+
+        // Load activity feed
+        async function loadActivity() {
+            try {
+                const resp = await fetch('/api/activity');
+                const activities = await resp.json();
+                const feed = document.getElementById('activityFeed');
+
+                if (!activities || activities.length === 0) {
+                    feed.innerHTML = '<div class="px-4 py-8 text-center text-gray-400 text-sm">Ingen aktivitet än</div>';
+                    return;
+                }
+
+                feed.innerHTML = activities.map(a => `
+                    <div class="px-4 py-3 hover:bg-gray-50 transition-colors">
+                        <div class="flex items-start gap-3">
+                            <span class="text-lg mt-0.5">${getActionIcon(a.action)}</span>
+                            <div class="flex-1 min-w-0">
+                                <p class="text-sm text-gray-800">${a.message}</p>
+                                <p class="text-xs text-gray-400">${new Date(a.createdAt).toLocaleString('sv-SE')}</p>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (err) {
+                console.error('Error loading activity:', err);
+            }
+        }
+
+        // Initial load
+        loadStats();
+        loadCustomers();
+        loadActivity();
+
+        // Auto-refresh every 5 seconds to show automation updates
+        setInterval(() => {
+            loadStats();
+            loadCustomers();
+            loadActivity();
+        }, 5000);
+    </script>
+</body>
+
+</html>
