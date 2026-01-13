@@ -1,0 +1,66 @@
+{{define "content"}}
+<!-- Header Section -->
+<section class="bg-warm py-16 md:py-20">
+    <div class="max-w-3xl mx-auto px-6 text-center">
+        <h1 class="text-3xl md:text-4xl font-bold text-green-brand mb-4">
+            🍎 Newsletter
+        </h1>
+        <p class="text-lg text-gray-600 leading-relaxed">
+            Here you can follow updates from the Öfvergårds orchard throughout the year.
+        </p>
+    </div>
+</section>
+
+<!-- Updates Section -->
+<section class="py-12 md:py-16">
+    <div class="max-w-3xl mx-auto px-6">
+        <h2 class="text-xl md:text-2xl font-bold text-green-brand mb-8 text-center">
+            Updates from the Orchard
+        </h2>
+        
+        <div class="space-y-6">
+            {{range .Updates}}
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                <div class="mb-3">
+                    <h3 class="text-lg font-bold text-green-brand font-sans">{{.Title}}</h3>
+                    <p class="text-sm text-gray-400 font-sans">{{.Date}}</p>
+                </div>
+                <p class="text-gray-600 leading-relaxed">{{.Text}}</p>
+                {{if .Image}}
+                <div class="mt-4">
+                    <div class="bg-gray-100 rounded-lg h-48 flex items-center justify-center text-gray-400 text-sm">
+                        Image placeholder
+                    </div>
+                </div>
+                {{end}}
+            </div>
+            {{end}}
+        </div>
+    </div>
+</section>
+
+<!-- About Adoption Section -->
+<section class="bg-warm-dark py-12 md:py-16">
+    <div class="max-w-2xl mx-auto px-6">
+        <h2 class="text-xl md:text-2xl font-bold text-green-brand mb-6 text-center">
+            About Your Adoption
+        </h2>
+        
+        <div class="space-y-4 text-gray-600 leading-relaxed">
+            <p>
+                When you adopt an apple tree at Öfvergårds, you become part of our small farm family. 
+                Your tree is cared for throughout the year—pruned in winter, tended in spring, 
+                and harvested by hand in autumn.
+            </p>
+            <p>
+                We share updates here as the seasons change, so you can follow along from wherever you are. 
+                During harvest, your tree's apples are pressed into fresh juice, 
+                and a share is set aside just for you.
+            </p>
+            <p class="text-sm text-gray-500 italic">
+                Thank you for supporting small-scale, sustainable farming in the Åland archipelago.
+            </p>
+        </div>
+    </div>
+</section>
+{{end}}

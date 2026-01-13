@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"encoding/csv"
 	"encoding/json"
 	"fmt"
 	"html/template"
@@ -9,12 +10,127 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"time"
 
 	"github.com/joho/godotenv"
 	_ "github.com/mattn/go-sqlite3"
 )
+
+// ============== CONFIGURATION ==============
+
+// Config holds all configurable settings loaded from config.json
+type Config struct {
+	Features struct {
+		SurveysEnabled    bool `json:"surveys_enabled"`
+		AdoptionsEnabled  bool `json:"adoptions_enabled"`
+		NewsletterEnabled bool `json:"newsletter_enabled"`
+	} `json:"features"`
+	Defaults struct {
+		AdoptionPriceEUR int      `json:"adoption_price_eur"`
+		Currency         string   `json:"currency"`
+		TreeTypes        []string `json:"tree_types"`
+	} `json:"defaults"`
+	Products []struct {
+		ID          string `json:"id"`
+		Name        string `json:"name"`
+		Description string `json:"description"`
+		PriceEUR    int    `json:"price_eur"`
+		Available   bool   `json:"available"`
+	} `json:"products"`
+	ContentDefaults map[string]string `json:"content_defaults"`
+	Automation      struct {
+		WebhookOnAdoption string `json:"webhook_on_adoption"`
+		WebhookOnFeedback string `json:"webhook_on_feedback"`
+		WebhookOnPayment  string `json:"webhook_on_payment"`
+	} `json:"automation"`
+}
+
+var config Config
+
+// loadConfig loads configuration from config.json with safe defaults
+func loadConfig() {
+	// Safe defaults if config fails to load
+	config.Features.SurveysEnabled = true
+	config.Features.AdoptionsEnabled = true
+	config.Features.NewsletterEnabled = true
+	config.Defaults.AdoptionPriceEUR = 50
+	config.Defaults.Currency = "EUR"
+	config.Defaults.TreeTypes = []string{"Amorosa", "Discovery", "Collina"}
+
+	file, err := os.ReadFile("config.json")
+	if err != nil {
+		log.Println("⚠️  config.json not found, using defaults")
+		return
+	}
+
+	if err := json.Unmarshal(file, &config); err != nil {
+		log.Printf("⚠️  Error parsing config.json: %v (using defaults)", err)
+		return
+	}
+
+	log.Println("✅ Configuration loaded from config.json")
+}
+
+// ============== AUTOMATION HOOKS ==============
+// These functions are called when important events happen.
+// Currently they just log. Later they can POST to n8n webhooks.
+
+// onAdoptionStarted is called when a customer shows interest in adopting
+func onAdoptionStarted(customerID int64, name, email, treeType string) {
+	message := fmt.Sprintf("Customer %s (%s) started adoption process for %s tree", name, email, treeType)
+	logActivity(customerID, "adoption_started", message)
+	log.Printf("🌱 HOOK: %s", message)
+
+	// Future: POST to config.Automation.WebhookOnAdoption if configured
+	if config.Automation.WebhookOnAdoption != "" {
+		log.Printf("   → Would notify webhook: %s", config.Automation.WebhookOnAdoption)
+	}
+}
+
+// onPaymentCompleted is called when payment is confirmed (mock)
+func onPaymentCompleted(customerID int64, amount int) {
+	message := fmt.Sprintf("Payment of €%d received (simulated)", amount)
+	logActivity(customerID, "payment_completed", message)
+	log.Printf("💳 HOOK: Customer #%d - %s", customerID, message)
+
+	// Future: POST to config.Automation.WebhookOnPayment if configured
+	if config.Automation.WebhookOnPayment != "" {
+		log.Printf("   → Would notify webhook: %s", config.Automation.WebhookOnPayment)
+	}
+}
+
+// onEmailSent is called when a confirmation email is "sent" (mock)
+func onEmailSent(customerID int64, email, emailType string) {
+	message := fmt.Sprintf("%s email sent to %s (simulated)", emailType, email)
+	logActivity(customerID, "email_sent", message)
+	log.Printf("✉️  HOOK: %s", message)
+}
+
+// onNewsletterSubscribed is called when customer is added to newsletter (mock)
+func onNewsletterSubscribed(customerID int64, name string) {
+	message := fmt.Sprintf("%s added to Apple Tree Newsletter - Welcome series", name)
+	logActivity(customerID, "newsletter_subscribed", message)
+	log.Printf("📬 HOOK: %s", message)
+}
+
+// onFeedbackSubmitted is called when any feedback is submitted
+func onFeedbackSubmitted(surveyType string, rating int, email string) {
+	message := fmt.Sprintf("New %s feedback received (Rating: %d/5)", surveyType, rating)
+	if email != "" {
+		message += fmt.Sprintf(" from %s", email)
+	}
+	// Log without customer ID since feedback can be anonymous
+	db.Exec("INSERT INTO activity_log (customer_id, action, message) VALUES (NULL, ?, ?)",
+		"feedback_received", message)
+	log.Printf("📋 HOOK: %s", message)
+
+	// Future: POST to config.Automation.WebhookOnFeedback if configured
+	if config.Automation.WebhookOnFeedback != "" {
+		log.Printf("   → Would notify webhook: %s", config.Automation.WebhookOnFeedback)
+	}
+}
 
 // Customer represents an adopter in the system
 type Customer struct {
@@ -135,6 +251,9 @@ var templateFuncs = template.FuncMap{
 func main() {
 	godotenv.Load()
 
+	// Load configuration first (before anything else)
+	loadConfig()
+
 	var err error
 	db, err = sql.Open("sqlite3", "./database.sqlite")
 	if err != nil {
@@ -214,6 +333,7 @@ func main() {
 	http.HandleFunc("/", handleFrontPage)
 	http.HandleFunc("/adopt", handleAdoptPage)
 	http.HandleFunc("/products", handleProductsPage)
+	http.HandleFunc("/my-tree", handleMyTreePage)
 	http.HandleFunc("/feedback/farmshop", handleFarmshopFeedback)
 	http.HandleFunc("/feedback/experience", handleExperienceFeedback)
 	http.HandleFunc("/feedback/thanks", handleFeedbackThanks)
@@ -230,6 +350,12 @@ func main() {
 	http.HandleFunc("/api/feedback/stats", handleFeedbackStats)
 	http.HandleFunc("/api/content", handleContentAPI)
 	http.HandleFunc("/api/content/", handleContentAPI)
+	http.HandleFunc("/api/config", handleGetConfig)
+
+	// Data Export Routes (for future integration with Google Sheets, Airtable, n8n)
+	http.HandleFunc("/api/export/customers", handleExportCustomersCSV)
+	http.HandleFunc("/api/export/feedback", handleExportFeedbackCSV)
+	http.HandleFunc("/api/export/activity", handleExportActivityCSV)
 
 	// Serve static files (JS, payment.html, success.html, admin.html, etc.)
 	clientDir := "../client"
@@ -263,14 +389,25 @@ func main() {
 	}
 	fmt.Printf("🍎 Öfvergårds Server starting on port %s...\n", port)
 	fmt.Println("   Open http://localhost:8080 in your browser")
-	fmt.Println("   Products: http://localhost:8080/products")
-	fmt.Println("   Adopt a tree: http://localhost:8080/adopt")
-	fmt.Println("   Admin dashboard: http://localhost:8080/admin.html")
-	fmt.Println("   Feedback surveys:")
-	fmt.Println("     - Farm Shop: http://localhost:8080/feedback/farmshop")
-	fmt.Println("     - Experience: http://localhost:8080/feedback/experience")
-	fmt.Println("   Feedback admin: http://localhost:8080/admin/feedback")
-	fmt.Println("   Content editor: http://localhost:8080/admin/content")
+	fmt.Println("")
+	fmt.Println("   📄 Pages:")
+	fmt.Println("      Products: http://localhost:8080/products")
+	fmt.Println("      Adopt a tree: http://localhost:8080/adopt")
+	fmt.Println("")
+	fmt.Println("   🔧 Admin:")
+	fmt.Println("      Dashboard: http://localhost:8080/admin.html")
+	fmt.Println("      Feedback: http://localhost:8080/admin/feedback")
+	fmt.Println("      Content editor: http://localhost:8080/admin/content")
+	fmt.Println("")
+	fmt.Println("   📋 Surveys:")
+	fmt.Println("      Farm Shop: http://localhost:8080/feedback/farmshop")
+	fmt.Println("      Experience: http://localhost:8080/feedback/experience")
+	fmt.Println("")
+	fmt.Println("   📥 Data Export (CSV):")
+	fmt.Println("      Customers: http://localhost:8080/api/export/customers")
+	fmt.Println("      Feedback: http://localhost:8080/api/export/feedback")
+	fmt.Println("      Activity: http://localhost:8080/api/export/activity")
+	fmt.Println("")
 	log.Fatal(http.ListenAndServe(":"+port, nil))
 }
 
@@ -326,9 +463,70 @@ func handleProductsPage(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// ============== MY TREE PAGE ==============
+
+// OrchardUpdate represents a single update from the farm
+type OrchardUpdate struct {
+	Title string
+	Date  string
+	Text  string
+	Image string // optional image path, empty if none
+}
+
+// Mock updates - add new updates at the TOP of this list
+var orchardUpdates = []OrchardUpdate{
+	{
+		Title: "Winter Pruning Complete",
+		Date:  "January 10, 2026",
+		Text:  "The orchard is resting under a blanket of frost. We've finished pruning the apple trees this week—careful cuts to help them grow strong and healthy come spring. It's quiet work, but deeply satisfying.",
+		Image: "",
+	},
+	{
+		Title: "First Snow of the Season",
+		Date:  "December 15, 2025",
+		Text:  "Åland woke up to its first real snowfall today. The orchard looks magical, each branch dusted in white. The trees are dormant now, storing energy for the busy months ahead.",
+		Image: "",
+	},
+	{
+		Title: "Harvest Season Wrapped Up",
+		Date:  "October 28, 2025",
+		Text:  "What a harvest! This year's apples were exceptional—crisp, sweet, and full of character. Your adopted trees contributed to over 200 bottles of fresh-pressed juice. Thank you for being part of this journey.",
+		Image: "",
+	},
+	{
+		Title: "Apple Picking Has Begun",
+		Date:  "September 15, 2025",
+		Text:  "The moment we've been waiting for! The Amorosa and Discovery apples are ready. We're picking by hand, one apple at a time, making sure only the best fruit makes it to the press.",
+		Image: "",
+	},
+}
+
+func handleMyTreePage(w http.ResponseWriter, r *http.Request) {
+	data := struct {
+		Title   string
+		Updates []OrchardUpdate
+	}{
+		Title:   "My Apple Tree",
+		Updates: orchardUpdates,
+	}
+
+	myTreeTemplates := template.Must(template.ParseFiles("templates/base.html", "templates/my-tree.html"))
+	err := myTreeTemplates.ExecuteTemplate(w, "base", data)
+	if err != nil {
+		log.Printf("Template error: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+	}
+}
+
 func handleAdopt(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	// Check if adoptions are enabled
+	if !config.Features.AdoptionsEnabled {
+		http.Error(w, "Adoptions are currently disabled", http.StatusServiceUnavailable)
 		return
 	}
 
@@ -356,9 +554,8 @@ func handleAdopt(w http.ResponseWriter, r *http.Request) {
 
 	id, _ := result.LastInsertId()
 
-	// MOCK: Log the signup activity
-	logActivity(id, "signup", fmt.Sprintf("New adoption interest from %s (%s)", data.Name, data.Email))
-	log.Printf("📝 New signup: %s wants to adopt a %s tree", data.Name, data.TreeType)
+	// AUTOMATION HOOK: Adoption started
+	onAdoptionStarted(id, data.Name, data.Email, data.TreeType)
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]interface{}{
@@ -393,9 +590,8 @@ func handleConfirmPayment(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Log payment activity
-	logActivity(data.CustomerID, "payment", "Payment received (simulated) - €50.00")
-	log.Printf("💳 MOCK: Payment received for customer #%d", data.CustomerID)
+	// AUTOMATION HOOK: Payment completed
+	onPaymentCompleted(data.CustomerID, config.Defaults.AdoptionPriceEUR)
 
 	// MOCK: Simulate automated actions after payment
 	go simulatePostPaymentAutomation(data.CustomerID)
@@ -416,14 +612,18 @@ func simulatePostPaymentAutomation(customerID int64) {
 	// MOCK: Wait 1 second, then "send" confirmation email
 	time.Sleep(1 * time.Second)
 	db.Exec("UPDATE customers SET status = 'email_sent' WHERE id = ?", customerID)
-	logActivity(customerID, "email", fmt.Sprintf("Confirmation email sent to %s", email))
-	log.Printf("✉️  MOCK: Confirmation email sent to %s", email)
 
-	// MOCK: Wait 1 more second, then subscribe to newsletter
-	time.Sleep(1 * time.Second)
-	db.Exec("UPDATE customers SET status = 'subscribed', newsletter_stage = 'welcome' WHERE id = ?", customerID)
-	logActivity(customerID, "newsletter", fmt.Sprintf("%s added to Apple Tree Newsletter (Welcome series)", name))
-	log.Printf("📬 MOCK: %s subscribed to newsletter", name)
+	// AUTOMATION HOOK: Email sent
+	onEmailSent(customerID, email, "Confirmation")
+
+	// MOCK: Wait 1 more second, then subscribe to newsletter (if enabled)
+	if config.Features.NewsletterEnabled {
+		time.Sleep(1 * time.Second)
+		db.Exec("UPDATE customers SET status = 'subscribed', newsletter_stage = 'welcome' WHERE id = ?", customerID)
+
+		// AUTOMATION HOOK: Newsletter subscribed
+		onNewsletterSubscribed(customerID, name)
+	}
 }
 
 // logActivity records an automation event
@@ -594,7 +794,8 @@ func handleSubmitFeedback(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	log.Printf("📋 New %s feedback received (Rating: %d/5)", data.SurveyType, data.Rating)
+	// AUTOMATION HOOK: Feedback submitted
+	onFeedbackSubmitted(data.SurveyType, data.Rating, data.Email)
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]interface{}{
@@ -736,4 +937,94 @@ func handleContentAPI(w http.ResponseWriter, r *http.Request) {
 	default:
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 	}
+}
+
+// ============== CONFIG & EXPORT HANDLERS ==============
+
+// handleGetConfig returns current configuration (read-only)
+func handleGetConfig(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"features": config.Features,
+		"defaults": config.Defaults,
+	})
+}
+
+// handleExportCustomersCSV exports all customers as CSV
+func handleExportCustomersCSV(w http.ResponseWriter, r *http.Request) {
+	rows, err := db.Query(`SELECT id, name, email, country, tree_type, status, newsletter_stage, created_at FROM customers ORDER BY created_at DESC`)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer rows.Close()
+
+	w.Header().Set("Content-Type", "text/csv")
+	w.Header().Set("Content-Disposition", "attachment; filename=customers.csv")
+
+	writer := csv.NewWriter(w)
+	writer.Write([]string{"ID", "Name", "Email", "Country", "Tree Type", "Status", "Newsletter Stage", "Created At"})
+
+	for rows.Next() {
+		var id int64
+		var name, email, country, treeType, status, newsletterStage, createdAt string
+		rows.Scan(&id, &name, &email, &country, &treeType, &status, &newsletterStage, &createdAt)
+		writer.Write([]string{strconv.FormatInt(id, 10), name, email, country, treeType, status, newsletterStage, createdAt})
+	}
+	writer.Flush()
+}
+
+// handleExportFeedbackCSV exports all feedback as CSV
+func handleExportFeedbackCSV(w http.ResponseWriter, r *http.Request) {
+	rows, err := db.Query(`SELECT id, survey_type, rating, experience, highlight, improvement, would_recommend, email, created_at FROM feedback ORDER BY created_at DESC`)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer rows.Close()
+
+	w.Header().Set("Content-Type", "text/csv")
+	w.Header().Set("Content-Disposition", "attachment; filename=feedback.csv")
+
+	writer := csv.NewWriter(w)
+	writer.Write([]string{"ID", "Survey Type", "Rating", "Experience", "Highlight", "Improvement", "Would Recommend", "Email", "Created At"})
+
+	for rows.Next() {
+		var id int64
+		var rating int
+		var wouldRecommend bool
+		var surveyType, experience, highlight, improvement, email, createdAt string
+		rows.Scan(&id, &surveyType, &rating, &experience, &highlight, &improvement, &wouldRecommend, &email, &createdAt)
+		writer.Write([]string{strconv.FormatInt(id, 10), surveyType, strconv.Itoa(rating), experience, highlight, improvement, strconv.FormatBool(wouldRecommend), email, createdAt})
+	}
+	writer.Flush()
+}
+
+// handleExportActivityCSV exports activity log as CSV
+func handleExportActivityCSV(w http.ResponseWriter, r *http.Request) {
+	rows, err := db.Query(`SELECT id, customer_id, action, message, created_at FROM activity_log ORDER BY created_at DESC`)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer rows.Close()
+
+	w.Header().Set("Content-Type", "text/csv")
+	w.Header().Set("Content-Disposition", "attachment; filename=activity.csv")
+
+	writer := csv.NewWriter(w)
+	writer.Write([]string{"ID", "Customer ID", "Action", "Message", "Created At"})
+
+	for rows.Next() {
+		var id int64
+		var customerID sql.NullInt64
+		var action, message, createdAt string
+		rows.Scan(&id, &customerID, &action, &message, &createdAt)
+		custIDStr := ""
+		if customerID.Valid {
+			custIDStr = strconv.FormatInt(customerID.Int64, 10)
+		}
+		writer.Write([]string{strconv.FormatInt(id, 10), custIDStr, action, message, createdAt})
+	}
+	writer.Flush()
 }

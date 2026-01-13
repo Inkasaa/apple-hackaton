@@ -1,0 +1,70 @@
+{
+  "_comment": "Configuration for Öfvergårds system. Edit values here, NOT in code.",
+  "_warning": "Only change values, not keys. Invalid keys will be ignored.",
+  
+  "features": {
+    "surveys_enabled": true,
+    "adoptions_enabled": true,
+    "newsletter_enabled": true,
+    "_comment": "Toggle features on/off without code changes"
+  },
+  
+  "defaults": {
+    "adoption_price_eur": 50,
+    "currency": "EUR",
+    "tree_types": ["Amorosa", "Discovery", "Collina"]
+  },
+  
+  "products": [
+    {
+      "id": "amorosa",
+      "name": "Amorosa",
+      "description": "Rose-pink juice with delicate floral aromatics and subtle honey notes",
+      "price_eur": 18,
+      "available": true
+    },
+    {
+      "id": "collina", 
+      "name": "Collina",
+      "description": "Golden-hued juice with crisp, refreshing taste and hints of citrus",
+      "price_eur": 18,
+      "available": true
+    },
+    {
+      "id": "discovery",
+      "name": "Discovery",
+      "description": "Ruby red juice with tangy sweetness and berry undertones",
+      "price_eur": 18,
+      "available": true
+    },
+    {
+      "id": "eva-lotta",
+      "name": "Eva-Lotta",
+      "description": "Pale gold juice with classic apple flavor, perfectly balanced and crisp",
+      "price_eur": 18,
+      "available": true
+    },
+    {
+      "id": "julyred",
+      "name": "Julyred",
+      "description": "Deep rose juice with bold, full-bodied taste and wild berry finish",
+      "price_eur": 18,
+      "available": true
+    }
+  ],
+  
+  "content_defaults": {
+    "hero_tagline": "Nature, apples, and quiet moments in the Åland archipelago",
+    "about_text": "Öfvergårds is a small family-run farm nestled in the beautiful Åland archipelago, between Sweden and Finland. Here, life follows the rhythm of the seasons.\n\nWe grow apples, tend to our land, and welcome visitors who seek a slower pace—a chance to reconnect with nature and experience authentic island life.",
+    "light_in_dark_text": "While most visitors come in summer, we believe there's something magical about the quieter months. When the days grow shorter and the world slows down, Åland reveals a different kind of beauty.\n\nLight in the Dark is our invitation to experience the low season—cozy gatherings, candlelit evenings, and the peacefulness that comes from truly stepping away.",
+    "cta_text": "When you adopt an apple tree at Öfvergårds, you're not just getting apples—you're joining our farm family and supporting sustainable, small-scale agriculture.",
+    "experience_nourish": "Forest walks, foraging sessions, and farm-to-table meals. Let the island's natural abundance restore you."
+  },
+  
+  "automation": {
+    "_comment": "Future n8n integration URLs (leave empty for mock mode)",
+    "webhook_on_adoption": "",
+    "webhook_on_feedback": "",
+    "webhook_on_payment": ""
+  }
+}
