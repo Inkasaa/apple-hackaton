@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="sv">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sidhuvud - Öfvergårds Admin</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <!-- FullCalendar -->
+    <link href='https://cdn.jsdelivr.net/npm/fullcalendar@5.10.1/main.min.css' rel='stylesheet' />
+
+    <!-- Flatpickr -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: #f4f6f8;
+        }
+
+        .sidebar {
+            width: 250px;
+            background: #2c3e50;
+            color: white;
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            padding-top: 20px;
+        }
+
+        .sidebar a {
+            display: block;
+            padding: 15px 20px;
+            color: #b8c7ce;
+            text-decoration: none;
+            font-size: 16px;
+        }
+
+        .sidebar a:hover,
+        .sidebar a.active {
+            background: #1a252f;
+            color: white;
+            border-left: 4px solid #3498db;
+        }
+
+        .main-content {
+            margin-left: 250px;
+            padding: 20px 40px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .card {
+            background: white;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+            margin-bottom: 25px;
+        }
+
+        h1,
+        h2 {
+            color: #333;
+        }
+
+        .tabs {
+            display: flex;
+            border-bottom: 2px solid #ddd;
+            margin-bottom: 20px;
+        }
+
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            color: #555;
+        }
+
+        .tab.active {
+            border-bottom: 2px solid #3498db;
+            color: #3498db;
+            font-weight: bold;
+            margin-bottom: -2px;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .form-group {
+            flex: 1;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            font-size: 13px;
+            color: #555;
+        }
+
+        input,
+        select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            color: white;
+        }
+
+        .btn-primary {
+            background-color: #3498db;
+        }
+
+        .btn-success {
+            background-color: #2ecc71;
+        }
+
+        .btn-danger {
+            background-color: #e74c3c;
+        }
+
+        #calendar {
+            max-width: 100%;
+            height: 600px;
+        }
+
+        /* Inquiry List */
+        .inquiry-item {
+            border: 1px solid #eee;
+            padding: 15px;
+            border-radius: 4px;
+            border-left: 4px solid #f39c12;
+            margin-bottom: 15px;
+            background: #fff;
+        }
+
+        .inquiry-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .inquiry-actions {
+            margin-top: 10px;
+            display: flex;
+            gap: 10px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="sidebar">
+        <h2 style="text-align:center; margin-bottom:30px;">Öfvergårds Admin</h2>
+        <a href="/admin"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+        <a href="/admin/visits" class="active"><i class="fas fa-calendar-check"></i> Besök & Bokningar</a>
+        <a href="/admin/newsletters"><i class="fas fa-envelope"></i> Nyhetsbrev</a>
+        <a href="/admin/feedback"><i class="fas fa-comments"></i> Feedback</a>
+        <a href="/"><i class="fas fa-external-link-alt"></i> Till Hemsidan</a>
+    </div>
+
+    <div class="main-content">
+        <div class="container">
+            <h1>Hantera Besök</h1>
+
+            <div class="tabs">
+                <div class="tab active" onclick="showTab('calendar')">Kalender & Tider</div>
+                <div class="tab" onclick="showTab('inquiries')">Förfrågningar {{if .Inquiries}}({{len
+                    .Inquiries}}){{end}}</div>
+            </div>
+
+            <!-- Calendar / Slot Creation Tab -->
+            <div id="tab-calendar" class="tab-content active">
+                <div class="card">
+                    <h3>Skapa Ny Tid</h3>
+                    <form id="createSlotForm">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Aktivitet</label>
+                                <select name="activity" id="slotActivity">
+                                    <option value="safari">Äppelsafari</option>
+                                    <option value="tasting">Mustprovning</option>
+                                    <option value="picnic">Picknick</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Datum & Tid</label>
+                                <input type="text" id="slotStartTime" name="startTime" placeholder="Välj starttid...">
+                            </div>
+                            <div class="form-group">
+                                <label>Kapacitet</label>
+                                <input type="number" name="capacity" id="slotCapacity" value="12">
+                            </div>
+                        </div>
+
+                        <div style="margin-bottom:15px;">
+                            <label><input type="checkbox" id="isRecurring"
+                                    onchange="document.getElementById('recurringOptions').style.display=this.checked?'block':'none'">
+                                Återkommande tid?</label>
+                        </div>
+
+                        <div id="recurringOptions"
+                            style="display:none; padding:15px; background:#f9f9f9; margin-bottom:15px; border-radius:4px;">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Upprepa i antal veckor:</label>
+                                    <input type="number" id="recurWeeks" value="4" min="1" max="52">
+                                </div>
+                            </div>
+                            <label>Välj veckodagar:</label>
+                            <div style="display:flex; gap:10px; margin-top:5px;">
+                                <label><input type="checkbox" name="recurDay" value="1"> Mån</label>
+                                <label><input type="checkbox" name="recurDay" value="2"> Tis</label>
+                                <label><input type="checkbox" name="recurDay" value="3"> Ons</label>
+                                <label><input type="checkbox" name="recurDay" value="4"> Tor</label>
+                                <label><input type="checkbox" name="recurDay" value="5"> Fre</label>
+                                <label><input type="checkbox" name="recurDay" value="6"> Lör</label>
+                                <label><input type="checkbox" name="recurDay" value="0"> Sön</label>
+                            </div>
+                        </div>
+
+                        <button type="button" class="btn btn-primary" onclick="createSlot()">Skapa Tid</button>
+                    </form>
+                </div>
+
+                <div class="card">
+                    <div id="calendar"></div>
+                </div>
+            </div>
+
+            <!-- Inquiries Tab -->
+            <div id="tab-inquiries" class="tab-content">
+                <div class="card">
+                    <h3>Förfrågningar om egen tid</h3>
+                    {{if .Inquiries}}
+                    {{range .Inquiries}}
+                    <div class="inquiry-item" id="inquiry-{{.ID}}">
+                        <div class="inquiry-header">
+                            <div>
+                                <strong>{{.Activity}}</strong> - Önskat datum: {{.ProposedDate}}<br>
+                                <span style="font-size:12px; color:#777;">Från: {{.Name}} ({{.Email}}) den
+                                    {{.CreatedAt}}</span>
+                            </div>
+                            <span class="badge"
+                                style="background:#f39c12; color:white; padding:3px 8px; border-radius:4px;">{{.Status}}</span>
+                        </div>
+                        <p style="margin:10px 0; background:#f9f9f9; padding:10px;">{{.Message}}</p>
+
+                        <div class="inquiry-actions">
+                            <button class="btn btn-success"
+                                onclick="openAcceptModal({{.ID}}, '{{.Activity}}', '{{.ProposedDate}}')">Acceptera &
+                                Skapa Tid</button>
+                            <button class="btn btn-danger" onclick="declineInquiry({{.ID}})">Neka</button>
+                        </div>
+                    </div>
+                    {{end}}
+                    {{else}}
+                    <p>Inga väntande förfrågningar.</p>
+                    {{end}}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@5.10.1/main.min.js'></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://npmcdn.com/flatpickr/dist/l10n/sv.js"></script>
+
+    <script>
+        // Tab Logic
+        function showTab(id) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            document.querySelector(`.tab[onclick="showTab('${id}')"]`).classList.add('active');
+            document.getElementById(`tab-${id}`).classList.add('active');
+            if (id === 'calendar') calendar.render();
+        }
+
+        // Flatpickr
+        flatpickr("#slotStartTime", {
+            enableTime: true,
+            dateFormat: "Y-m-d H:i",
+            time_24hr: true,
+            locale: "sv",
+            minDate: "today"
+        });
+
+        // Calendar
+        var calendar;
+        document.addEventListener('DOMContentLoaded', function () {
+            var calendarEl = document.getElementById('calendar');
+            calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'dayGridMonth',
+                timeZone: 'UTC',
+                headerToolbar: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'dayGridMonth,timeGridWeek,timeGridDay'
+                },
+                locale: 'sv',
+                eventTimeFormat: {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    meridiem: false,
+                    hour12: false
+                },
+                events: function (info, successCallback, failureCallback) {
+                    // Fetch slots as events
+                    fetch('/api/slots?activity=') // all
+                        .then(res => res.json())
+                        .then(data => {
+                            const events = data.map(slot => ({
+                                title: `${slot.activity} (${slot.booked}/${slot.capacity})`,
+                                start: slot.startTime,
+                                end: slot.endTime,
+                                color: getEventColor(slot.activity),
+                                extendedProps: slot
+                            }));
+                            successCallback(events);
+                        })
+                        .catch(err => failureCallback(err));
+                }
+            });
+            calendar.render();
+        });
+
+        function getEventColor(type) {
+            if (type === 'safari') return '#e74c3c';
+            if (type === 'tasting') return '#f39c12';
+            if (type === 'picnic') return '#2ecc71';
+            return '#3498db';
+        }
+
+        // Create Slot
+        async function createSlot() {
+            const activity = document.getElementById('slotActivity').value;
+            const startTimeStr = document.getElementById('slotStartTime').value; // YYYY-MM-DD HH:MM
+            const capacity = parseInt(document.getElementById('slotCapacity').value);
+            const isRecurring = document.getElementById('isRecurring').checked;
+
+            if (!startTimeStr) return alert("Välj starttid!");
+
+            // Convert to ISO 
+            const startTime = new Date(startTimeStr).toISOString();
+
+            const data = {
+                activity,
+                startTime,
+                capacity,
+                durationMinutes: 90,
+                isRecurring,
+                recurWeeks: isRecurring ? parseInt(document.getElementById('recurWeeks').value) : 0,
+                recurDays: []
+            };
+
+            if (isRecurring) {
+                document.querySelectorAll('input[name="recurDay"]:checked').forEach(cb => {
+                    data.recurDays.push(parseInt(cb.value));
+                });
+            }
+
+            const res = await fetch('/api/slots', {
+                method: 'POST',
+                body: JSON.stringify(data)
+            });
+            const result = await res.json();
+
+            if (result.success) {
+                alert('Tid(er) skapades!');
+                calendar.refetchEvents();
+                document.getElementById('createSlotForm').reset();
+            } else {
+                alert('Fel: ' + (result.message || 'Okänt fel'));
+            }
+        }
+
+        // Inquiry Actions
+        async function declineInquiry(id) {
+            if (!confirm("Vill du neka denna förfrågan?")) return;
+            await postInquiryAction(id, 'decline');
+        }
+
+        async function openAcceptModal(id, activity, dateHint) {
+            // dateHint is in ISO format (e.g. 2026-07-15T14:00:00.000Z) or similar
+            let defaultDate = new Date().toISOString().slice(0, 16).replace('T', ' ');
+
+            if (dateHint) {
+                // Try to parse dateHint
+                try {
+                    const d = new Date(dateHint);
+                    if (!isNaN(d.getTime())) {
+                        // Format to YYYY-MM-DD HH:MM
+                        const pad = (n) => n < 10 ? '0' + n : n;
+                        defaultDate = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+                    }
+                } catch (e) {
+                    console.error("Could not parse dateHint", dateHint);
+                }
+            }
+
+            const confirmedTime = prompt(`Skapa en tid för ${activity}.\nFöreslaget datum: ${dateHint}\n\nAnge datum och tid (YYYY-MM-DD HH:MM):`, defaultDate);
+
+            if (!confirmedTime) return;
+
+            const slotData = {
+                activity: activity.toLowerCase().includes('safari') ? 'safari' : (activity.toLowerCase().includes('provning') ? 'tasting' : 'picnic'),
+                startTime: confirmedTime, // Simple string pass
+                capacity: 12 // Default
+            };
+
+            await postInquiryAction(id, 'accept', slotData);
+        }
+
+        async function postInquiryAction(id, action, slotData = null) {
+            const res = await fetch('/api/inquiries/action', {
+                method: 'POST',
+                body: JSON.stringify({ id, action, slotData })
+            });
+            const result = await res.json();
+            if (result.success) {
+                alert('Åtgärd utförd!');
+                location.reload();
+            } else {
+                alert('Fel wvid åtgärd.');
+            }
+        }
+    </script>
+
+</body>
+
+</html>

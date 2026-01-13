@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="sv">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Öfvergårds</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: #f4f6f8;
+        }
+
+        .sidebar {
+            width: 250px;
+            background: #2c3e50;
+            color: white;
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            padding-top: 20px;
+        }
+
+        .sidebar h2 {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .sidebar a {
+            display: block;
+            padding: 15px 20px;
+            color: #b8c7ce;
+            text-decoration: none;
+            font-size: 16px;
+        }
+
+        .sidebar a:hover,
+        .sidebar a.active {
+            background: #1a252f;
+            color: white;
+            border-left: 4px solid #3498db;
+        }
+
+        .main-content {
+            margin-left: 250px;
+            padding: 20px 40px;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .card {
+            background: white;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+            text-align: center;
+            transition: transform 0.2s;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+        }
+
+        .card i {
+            font-size: 40px;
+            color: #3498db;
+            margin-bottom: 15px;
+        }
+
+        .card h3 {
+            margin: 10px 0;
+            color: #333;
+        }
+
+        .card p {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .btn {
+            display: inline-block;
+            margin-top: 15px;
+            padding: 8px 20px;
+            background: #3498db;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="sidebar">
+        <h2>Öfvergårds Admin</h2>
+        <a href="/admin" class="active"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+        <a href="/admin/visits"><i class="fas fa-calendar-check"></i> Besök & Bokningar</a>
+        <a href="/admin/newsletters"><i class="fas fa-envelope"></i> Nyhetsbrev</a>
+        <a href="/admin/feedback"><i class="fas fa-comments"></i> Feedback</a>
+        <a href="/"><i class="fas fa-external-link-alt"></i> Till Hemsidan</a>
+    </div>
+
+    <div class="main-content">
+        <div class="header">
+            <h1>Välkommen tillbaka, Admin!</h1>
+        </div>
+
+        <div class="card-grid">
+            <div class="card">
+                <i class="fas fa-calendar-check"></i>
+                <h3>Hantera Bokningar</h3>
+                <p>Skapa tider, se bokningar och hantera förfrågningar.</p>
+                <a href="/admin/visits" class="btn">Gå till Bokningar</a>
+            </div>
+
+            <div class="card">
+                <i class="fas fa-envelope"></i>
+                <h3>Nyhetsbrev</h3>
+                <p>Skapa och skicka nyhetsbrev till dina kunder.</p>
+                <a href="/admin/newsletters" class="btn">Gå till Nyhetsbrev</a>
+            </div>
+
+            <div class="card">
+                <i class="fas fa-apple-alt"></i>
+                <h3>Adoptera Träd</h3>
+                <p>Hantera "Mitt Äppelträd" kunder och betalningar.</p>
+                <a href="/admin/customers" class="btn">Gå till Kunder</a>
+                <!-- Note: /admin/customers route might need verification if exists -->
+            </div>
+
+            <div class="card">
+                <i class="fas fa-comments"></i>
+                <h3>Feedback</h3>
+                <p>Läs och hantera feedback från besökare.</p>
+                <a href="/admin/feedback" class="btn">Gå till Feedback</a>
+            </div>
+        </div>
+    </div>
+
+</body>
+
+</html>

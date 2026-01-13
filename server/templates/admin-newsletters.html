@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="sv">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nyhetsbrev - Öfvergårds Admin</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Quill CSS -->
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: #f4f6f8;
+        }
+
+        .sidebar {
+            width: 250px;
+            background: #2c3e50;
+            color: white;
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            padding-top: 20px;
+        }
+
+        .sidebar a {
+            display: block;
+            padding: 15px 20px;
+            color: #b8c7ce;
+            text-decoration: none;
+            font-size: 16px;
+        }
+
+        .sidebar a:hover,
+        .sidebar a.active {
+            background: #1a252f;
+            color: white;
+            border-left: 4px solid #3498db;
+        }
+
+        .main-content {
+            margin-left: 250px;
+            padding: 20px 40px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .card {
+            background: white;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+            margin-bottom: 25px;
+        }
+
+        h1,
+        h2 {
+            color: #333;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+        }
+
+        input[type="text"],
+        select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        #editor {
+            height: 300px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            color: white;
+        }
+
+        .btn-primary {
+            background-color: #3498db;
+        }
+
+        .btn-success {
+            background-color: #2ecc71;
+        }
+
+        .btn-secondary {
+            background-color: #95a5a6;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th,
+        td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #f8f9fa;
+            color: #333;
+        }
+
+        .badge {
+            padding: 5px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            color: white;
+        }
+
+        .badge-draft {
+            background-color: #f39c12;
+        }
+
+        .badge-sent {
+            background-color: #2ecc71;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="sidebar">
+        <h2 style="text-align:center; margin-bottom:30px;">Öfvergårds Admin</h2>
+        <a href="/admin"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+        <a href="/admin/visits"><i class="fas fa-calendar-check"></i> Besök & Bokningar</a>
+        <a href="/admin/newsletters" class="active"><i class="fas fa-envelope"></i> Nyhetsbrev</a>
+        <a href="/admin/feedback"><i class="fas fa-comments"></i> Feedback</a>
+        <a href="/"><i class="fas fa-external-link-alt"></i> Till Hemsidan</a>
+    </div>
+
+    <div class="main-content">
+        <div class="container">
+            <h1>Hantera Nyhetsbrev</h1>
+
+            <!-- Create/Edit Section -->
+            <div class="card">
+                <h2>Skapa Nytt Nyhetsbrev</h2>
+                <form id="newsletterForm">
+                    <input type="hidden" id="newsletterId">
+                    <div class="form-group">
+                        <label>Ämne</label>
+                        <input type="text" id="subject" required placeholder="Fyll i ämne...">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Mottagare (Filter)</label>
+                        <select id="filterCriteria">
+                            <option value="all">Alla Kunder</option>
+                            <option value="tree_owners">Äppelträdskunder</option>
+                            <option value="visit_customers">Besökskunder</option>
+                            <option value="safari">Endast Safari</option>
+                            <option value="tasting">Endast Mustprovning</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Innehåll</label>
+                        <div id="editor"></div>
+                    </div>
+
+                    <div style="display:flex; gap:10px;">
+                        <button type="button" class="btn btn-primary" onclick="saveDraft()">Spara Utkast</button>
+                        <button type="button" class="btn btn-success" onclick="sendNewsletter()">Skicka Nu</button>
+                        <button type="button" class="btn btn-secondary" onclick="resetForm()">Rensa</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- List Section -->
+            <div class="card">
+                <h2>Tidigare Nyhetsbrev</h2>
+                <div id="newsletterList">Laddar...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quill JS -->
+    <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+    <script>
+        var quill = new Quill('#editor', {
+            theme: 'snow',
+            placeholder: 'Skriv ditt meddelande här...'
+        });
+
+        async function loadNewsletters() {
+            const res = await fetch('/api/newsletters');
+            const list = await res.json();
+
+            if (list.length === 0) {
+                document.getElementById('newsletterList').innerHTML = '<p>Inga nyhetsbrev hittades.</p>';
+                return;
+            }
+
+            let html = '<table><thead><tr><th>Ämne</th><th>Status</th><th>Skapad</th><th>Skickad</th><th>Åtgärd</th></tr></thead><tbody>';
+            list.forEach(n => {
+                const created = new Date(n.createdAt).toLocaleDateString();
+                const sent = n.sentAt ? new Date(n.sentAt).toLocaleString() : '-';
+                const badgeClass = n.status === 'sent' ? 'badge-sent' : 'badge-draft';
+                const label = n.status === 'sent' ? 'Skickad' : 'Utkast';
+
+                html += `<tr>
+                <td>${n.subject}</td>
+                <td><span class="badge ${badgeClass}">${label}</span></td>
+                <td>${created}</td>
+                <td>${sent}</td>
+                <td>
+                    ${n.status === 'draft' ? `<button onclick="editNewsletter(${n.id})" style="cursor:pointer; color:#3498db; border:none; background:none; text-decoration:underline;">Redigera</button>` : ''}
+                </td>
+            </tr>`;
+            });
+            html += '</tbody></table>'
+            document.getElementById('newsletterList').innerHTML = html;
+        }
+
+        // Load on start
+        loadNewsletters();
+
+        function getFormData() {
+            return {
+                id: document.getElementById('newsletterId').value ? parseInt(document.getElementById('newsletterId').value) : 0,
+                subject: document.getElementById('subject').value,
+                content: quill.root.innerHTML,
+                filterCriteria: document.getElementById('filterCriteria').value
+            };
+        }
+
+        async function saveDraft() {
+            const data = getFormData();
+            if (!data.subject) return alert('Ange ett ämne');
+
+            const res = await fetch('/api/newsletters', {
+                method: 'POST',
+                body: JSON.stringify(data)
+            });
+            const result = await res.json();
+            if (result.success) {
+                alert('Utkast sparat!');
+                loadNewsletters();
+                if (data.id === 0) resetForm(); // Only reset if new
+            } else {
+                alert('Fel: ' + result.message);
+            }
+        }
+
+        async function sendNewsletter() {
+            if (!confirm('Är du säker på att du vill skicka detta till alla valda mottagare?')) return;
+
+            const data = getFormData();
+            if (!data.subject) return alert('Ange ett ämne');
+
+            const res = await fetch('/api/newsletters?action=send', {
+                method: 'POST',
+                body: JSON.stringify(data)
+            });
+            const result = await res.json();
+            if (result.success) {
+                alert('Nyhetsbrev skickat!');
+                resetForm();
+                loadNewsletters();
+            } else {
+                alert('Fel: ' + result.message);
+            }
+        }
+
+        function editNewsletter(id) {
+            // Fetch specific logic or find in loaded list (simplification: find in DOM or reload)
+            // For now, let's just alert
+            alert('Redigeringsläge laddas (TODO: Populate form)');
+        }
+
+        function resetForm() {
+            document.getElementById('newsletterForm').reset();
+            quill.setContents([]);
+            document.getElementById('newsletterId').value = '';
+        }
+    </script>
+
+</body>
+
+</html>

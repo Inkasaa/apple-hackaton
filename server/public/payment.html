@@ -122,6 +122,7 @@
         const customerId = params.get('id');
         const customerName = params.get('name');
         const treeType = params.get('tree');
+        const paymentType = params.get('type'); // 'visit' or null (adopt)
 
         // Display customer info
         document.getElementById('nameDisplay').textContent = customerName || 'Guest';
@@ -140,10 +141,18 @@
 
             // MOCK: Call backend to confirm "payment"
             try {
-                const response = await fetch('/api/confirm-payment', {
+                let url = '/api/confirm-payment';
+                let body = { customerId: parseInt(customerId) };
+
+                if (paymentType === 'visit') {
+                    url = '/api/confirm-visit';
+                    body = { bookingId: parseInt(customerId) }; // ID param holds BookingID for visits
+                }
+
+                const response = await fetch(url, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ customerId: parseInt(customerId) })
+                    body: JSON.stringify(body)
                 });
 
                 const result = await response.json();

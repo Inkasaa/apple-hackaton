@@ -42,8 +42,100 @@ type PageData struct {
 	Content string
 }
 
+// Visit Booking Structs
+type Slot struct {
+	ID        int64  `json:"id"`
+	Activity  string `json:"activity"` // safari, tasting, picnic
+	StartTime string `json:"startTime"`
+	EndTime   string `json:"endTime"`
+	Capacity  int    `json:"capacity"`
+	Booked    int    `json:"booked"`
+}
+
+type Booking struct {
+	ID            int64  `json:"id"`
+	SlotID        int64  `json:"slotId"`
+	CustomerName  string `json:"customerName"`
+	CustomerEmail string `json:"customerEmail"`
+	Quantity      int    `json:"quantity"`
+	Status        string `json:"status"` // pending, paid, confirmed
+	PaymentToken  string `json:"paymentToken"`
+	CreatedAt     string `json:"createdAt"`
+}
+
+type Inquiry struct {
+	ID           int64  `json:"id"`
+	Name         string `json:"name"`
+	Email        string `json:"email"`
+	Activity     string `json:"activity"`
+	ProposedDate string `json:"proposedDate"`
+	Message      string `json:"message"`
+	Status       string `json:"status"` // pending, accepted, declined
+	CreatedAt    string `json:"createdAt"`
+}
+
+type Newsletter struct {
+	ID             int64  `json:"id"`
+	Subject        string `json:"subject"`
+	Content        string `json:"content"`        // HTML
+	FilterCriteria string `json:"filterCriteria"` // e.g. "all", "tree_type:lobjet", "product:safari"
+	Status         string `json:"status"`         // draft, sent
+	CreatedAt      string `json:"createdAt"`
+	SentAt         string `json:"sentAt"`
+}
+
+func initVisitTables() {
+	query := `
+	CREATE TABLE IF NOT EXISTS slots (
+		id INTEGER PRIMARY KEY AUTOINCREMENT,
+		activity TEXT,
+		start_time DATETIME,
+		end_time DATETIME,
+		capacity INTEGER,
+		booked INTEGER DEFAULT 0
+	);
+	CREATE TABLE IF NOT EXISTS bookings (
+		id INTEGER PRIMARY KEY AUTOINCREMENT,
+		slot_id INTEGER,
+		customer_name TEXT,
+		customer_email TEXT,
+		quantity INTEGER,
+		status TEXT,
+		payment_token TEXT,
+		created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+		FOREIGN KEY(slot_id) REFERENCES slots(id)
+	);
+	CREATE TABLE IF NOT EXISTS inquiries (
+		id INTEGER PRIMARY KEY AUTOINCREMENT,
+		name TEXT,
+		email TEXT,
+		activity TEXT,
+		proposed_date TEXT,
+		message TEXT,
+		status TEXT DEFAULT 'pending',
+		created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+	);
+	CREATE TABLE IF NOT EXISTS newsletters (
+		id INTEGER PRIMARY KEY AUTOINCREMENT,
+		subject TEXT,
+		content TEXT,
+		filter_criteria TEXT,
+		status TEXT DEFAULT 'draft',
+		created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+		sent_at DATETIME
+	);
+	`
+	_, err := db.Exec(query)
+	if err != nil {
+		log.Printf("Error creating visit tables: %v", err)
+	}
+
+	// Migration: Add status to inquiries if it doesn't exist
+	db.Exec("ALTER TABLE inquiries ADD COLUMN status TEXT DEFAULT 'pending'")
+}
+
 var db *sql.DB
-var templates *template.Template
+var tmpl *template.Template
 
 // Template helper functions
 var templateFuncs = template.FuncMap{
@@ -70,13 +162,21 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	// Initialize Database
+	initDB()
+	initVisitTables()
 	defer db.Close()
 
-	// Load HTML templates (for Admin pages mostly)
-	templates = template.Must(template.New("").Funcs(templateFuncs).ParseFiles("templates/base.html", "templates/feedback-admin.html"))
+	// Parse Templates
+	// We use semantic HTML templates from /templates folder
+	tmpl, err = template.New("").Funcs(templateFuncs).ParseGlob("templates/*.html")
+	if err != nil {
+		log.Fatalf("Error parsing templates: %v", err)
+	}
 
-	// Create tables if not exist
 	initDB()
+	initVisitTables()
 
 	// API Routes
 	http.HandleFunc("/api/adopt", handleAdopt)
@@ -85,8 +185,21 @@ func main() {
 	http.HandleFunc("/api/activity", handleGetActivity)
 	http.HandleFunc("/api/stats", handleGetStats)
 
+	// Visit Booking API
+	http.HandleFunc("/api/slots", handleSlots)
+	http.HandleFunc("/api/book-visit", handleBookVisit)
+	http.HandleFunc("/api/inquiry", handleInquiry)
+	http.HandleFunc("/api/confirm-visit", handleConfirmVisit)
+
+	// Newsletter API
+	http.HandleFunc("/api/newsletters", handleNewsletters)
+
 	// Admin Routes (using templates/old proto logic if needed)
 	http.HandleFunc("/admin/feedback", handleAdminFeedback)
+	http.HandleFunc("/admin/visits", handleAdminVisits)
+	http.HandleFunc("/admin/newsletters", handleAdminNewsletters)
+	http.HandleFunc("/api/inquiries/action", handleInquiryAction)
+	http.HandleFunc("/admin", handleAdminDashboard) // New main dashboard
 
 	// Serve Static Site (The Mirrored Site)
 	// We check if the file exists in public/, otherwise we check if it's an API or specific page
@@ -315,4 +428,452 @@ func handleAdminFeedback(w http.ResponseWriter, r *http.Request) {
 	// For now, let's just make it return 200 OK or a simple message,
 	// or re-implement if Feedback feature is still desired.
 	http.Redirect(w, r, "/admin.html", http.StatusFound)
+}
+
+// --- Visit Booking Handlers ---
+
+func handleSlots(w http.ResponseWriter, r *http.Request) {
+	if r.Method == http.MethodGet {
+		activity := r.URL.Query().Get("activity")
+		query := "SELECT id, activity, start_time, end_time, capacity, booked FROM slots WHERE start_time > CURRENT_TIMESTAMP"
+		args := []interface{}{}
+
+		if activity != "" {
+			query += " AND activity = ?"
+			args = append(args, activity)
+		}
+		query += " ORDER BY start_time ASC"
+
+		rows, err := db.Query(query, args...)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		defer rows.Close()
+
+		var slots []Slot
+		for rows.Next() {
+			var s Slot
+			if err := rows.Scan(&s.ID, &s.Activity, &s.StartTime, &s.EndTime, &s.Capacity, &s.Booked); err != nil {
+				continue
+			}
+			slots = append(slots, s)
+		}
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(slots)
+		return
+	}
+
+	if r.Method == http.MethodPost {
+		// Create new slot(s)
+		var req struct {
+			Activity        string `json:"activity"`
+			StartTime       string `json:"startTime"` // ISO string
+			Capacity        int    `json:"capacity"`
+			DurationMinutes int    `json:"durationMinutes"`
+			IsRecurring     bool   `json:"isRecurring"`
+			RecurWeeks      int    `json:"recurWeeks"` // Number of weeks to repeat
+			RecurDays       []int  `json:"recurDays"`  // 0=Sunday, 1=Monday...
+		}
+
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		// Parse StartTime
+		start, err := time.Parse(time.RFC3339, req.StartTime)
+		if err != nil {
+			http.Error(w, "Invalid date format: "+err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		duration := time.Duration(req.DurationMinutes) * time.Minute
+		if duration == 0 {
+			duration = 90 * time.Minute
+		} // Default
+
+		// Helper to insert slot
+		insertSlot := func(t time.Time) error {
+			end := t.Add(duration)
+			_, err := db.Exec("INSERT INTO slots (activity, start_time, end_time, capacity) VALUES (?, ?, ?, ?)",
+				req.Activity, t.Format("2006-01-02 15:04:05"), end.Format("2006-01-02 15:04:05"), req.Capacity)
+			return err
+		}
+
+		if !req.IsRecurring {
+			if err := insertSlot(start); err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+		} else {
+			// Recurring logic
+
+			// If RecurDays is empty, assume just repeating existing date for N weeks
+			targetDays := make(map[time.Weekday]bool)
+			for _, d := range req.RecurDays {
+				targetDays[time.Weekday(d)] = true
+			}
+
+			// Iterate day by day for (RecurWeeks * 7) days to find matches
+			baseTime := start
+			// If only repeating same day every week
+			if len(targetDays) == 0 {
+				for i := 0; i < req.RecurWeeks; i++ {
+					// Add i weeks
+					nextDate := baseTime.AddDate(0, 0, i*7)
+					if err := insertSlot(nextDate); err != nil {
+						log.Println("Error creating recurring slot:", err)
+					}
+				}
+			} else {
+				// If specific days selected (e.g. Mon, Wed)
+				// Start from baseTime and go forward
+				for i := 0; i < req.RecurWeeks*7; i++ {
+					currentDay := baseTime.AddDate(0, 0, i)
+					if targetDays[currentDay.Weekday()] {
+						if err := insertSlot(currentDay); err != nil {
+							log.Println("Error creating recurring slot:", err)
+						}
+					}
+				}
+			}
+		}
+
+		json.NewEncoder(w).Encode(map[string]interface{}{"success": true})
+	}
+}
+
+func handleBookVisit(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+	var b Booking
+	if err := json.NewDecoder(r.Body).Decode(&b); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	// Transaction to check capacity and book
+	tx, err := db.Begin()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	var capacity, booked int
+	err = tx.QueryRow("SELECT capacity, booked FROM slots WHERE id = ?", b.SlotID).Scan(&capacity, &booked)
+	if err != nil {
+		tx.Rollback()
+		http.Error(w, "Slot not found", http.StatusNotFound)
+		return
+	}
+
+	if booked+b.Quantity > capacity {
+		tx.Rollback()
+		http.Error(w, "Not enough capacity", http.StatusConflict)
+		return
+	}
+
+	_, err = tx.Exec("UPDATE slots SET booked = booked + ? WHERE id = ?", b.Quantity, b.SlotID)
+	if err != nil {
+		tx.Rollback()
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	res, err := tx.Exec("INSERT INTO bookings (slot_id, customer_name, customer_email, quantity, status) VALUES (?, ?, ?, ?, 'pending')", b.SlotID, b.CustomerName, b.CustomerEmail, b.Quantity)
+	if err != nil {
+		tx.Rollback()
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	bookingID, _ := res.LastInsertId()
+	tx.Commit()
+
+	// In a real app, we'd redirect to generic payment with booking ID
+	// For reusing existing payment.html, we can format response similarly
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"success": true,
+		"id":      bookingID, // Booking ID
+		"name":    b.CustomerName,
+		// Reuse 'treeType' param as 'activity' description or similar
+		"treeType": "Visit Booking #" + fmt.Sprintf("%d", bookingID),
+	})
+}
+
+func handleInquiry(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+	var inq Inquiry
+	if err := json.NewDecoder(r.Body).Decode(&inq); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	_, err := db.Exec("INSERT INTO inquiries (name, email, activity, proposed_date, message) VALUES (?, ?, ?, ?, ?)", inq.Name, inq.Email, inq.Activity, inq.ProposedDate, inq.Message)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	json.NewEncoder(w).Encode(map[string]bool{"success": true})
+}
+
+func handleAdminVisits(w http.ResponseWriter, r *http.Request) {
+	// Fetch Slots (for list view if needed, but calendar uses API)
+	rows, err := db.Query("SELECT id, activity, start_time, end_time, capacity, booked FROM slots ORDER BY start_time DESC")
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer rows.Close()
+
+	var slots []Slot
+	for rows.Next() {
+		var s Slot
+		rows.Scan(&s.ID, &s.Activity, &s.StartTime, &s.EndTime, &s.Capacity, &s.Booked)
+		slots = append(slots, s)
+	}
+
+	// Fetch Pending Inquiries
+	rows2, err := db.Query("SELECT id, name, email, activity, proposed_date, message, status, created_at FROM inquiries WHERE status = 'pending' ORDER BY created_at DESC")
+	if err != nil {
+		log.Println("Error fetching inquiries:", err)
+	} else {
+		defer rows2.Close()
+	}
+
+	var inquiries []Inquiry
+	if rows2 != nil {
+		for rows2.Next() {
+			var i Inquiry
+			rows2.Scan(&i.ID, &i.Name, &i.Email, &i.Activity, &i.ProposedDate, &i.Message, &i.Status, &i.CreatedAt)
+			inquiries = append(inquiries, i)
+		}
+	}
+
+	data := struct {
+		Title     string
+		Slots     []Slot
+		Inquiries []Inquiry
+	}{
+		Title:     "Manage Visits",
+		Slots:     slots,
+		Inquiries: inquiries,
+	}
+	tmpl.ExecuteTemplate(w, "admin-visits.html", data)
+}
+
+func handleInquiryAction(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	var req struct {
+		ID       int64     `json:"id"`
+		Action   string    `json:"action"` // "accept" or "decline"
+		SlotData *struct { // If accept, create a slot
+			Activity  string `json:"activity"`
+			StartTime string `json:"startTime"`
+			Capacity  int    `json:"capacity"`
+		} `json:"slotData"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	if req.Action == "decline" {
+		_, err := db.Exec("UPDATE inquiries SET status = 'declined' WHERE id = ?", req.ID)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		// TODO: Send email notification
+	} else if req.Action == "accept" {
+		if req.SlotData != nil {
+			// Create Slot
+			duration := 90 * time.Minute
+			// StartTime from frontend is likely "YYYY-MM-DD HH:MM"
+			start, err := time.Parse("2006-01-02 15:04", req.SlotData.StartTime)
+			if err != nil {
+				// Fallback to ISO just in case
+				start, err = time.Parse("2006-01-02T15:04", req.SlotData.StartTime)
+			}
+			if err != nil {
+				http.Error(w, "Invalid date format: "+err.Error(), http.StatusBadRequest)
+				return
+			}
+			end := start.Add(duration)
+
+			_, err = db.Exec("INSERT INTO slots (activity, start_time, end_time, capacity) VALUES (?, ?, ?, ?)",
+				req.SlotData.Activity, start.Format("2006-01-02 15:04:05"), end.Format("2006-01-02 15:04:05"), req.SlotData.Capacity)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+		}
+
+		_, err := db.Exec("UPDATE inquiries SET status = 'accepted' WHERE id = ?", req.ID)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		// TODO: Send email notification
+	}
+
+	json.NewEncoder(w).Encode(map[string]bool{"success": true})
+}
+
+func handleConfirmVisit(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	var data struct {
+		BookingID int64 `json:"bookingId"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&data); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	tx, err := db.Begin()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// Update booking status
+	_, err = tx.Exec("UPDATE bookings SET status = 'paid' WHERE id = ?", data.BookingID)
+	if err != nil {
+		tx.Rollback()
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// Get booking details for log
+	var customerName, customerEmail, activity string
+	var quantity int
+	err = tx.QueryRow(`
+		SELECT b.customer_name, b.customer_email, b.quantity, s.activity 
+		FROM bookings b 
+		JOIN slots s ON b.slot_id = s.id 
+		WHERE b.id = ?`, data.BookingID).Scan(&customerName, &customerEmail, &quantity, &activity)
+
+	if err != nil {
+		// Log error but don't fail the transaction just for this
+		log.Printf("Error getting booking details for log: %v", err)
+	}
+
+	tx.Commit()
+
+	// MOCK: Log payment activity
+	msg := fmt.Sprintf("Visit confirmed: %s booked %s for %d pax", customerName, activity, quantity)
+	// We can use 0 for customer_id or make it nullable in activity_log,
+	// OR create a customer record for them?
+	// For now, let's just log to console as we might not have a customer ID in 'customers' table for visits yet.
+	// If we want to reuse activity log, we need a customer ID.
+	// Let's just skip activity_log insert for now to avoid FK constraint issues if 0 is not allowed.
+	log.Printf("💳 %s", msg)
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"success": true,
+		"message": "Visit Payment confirmed!",
+	})
+}
+
+func handleNewsletters(w http.ResponseWriter, r *http.Request) {
+	if r.Method == http.MethodGet {
+		rows, err := db.Query("SELECT id, subject, content, filter_criteria, status, created_at, sent_at FROM newsletters ORDER BY created_at DESC")
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		defer rows.Close()
+
+		var newsletters []Newsletter
+		for rows.Next() {
+			var n Newsletter
+			var sentAt sql.NullString
+			if err := rows.Scan(&n.ID, &n.Subject, &n.Content, &n.FilterCriteria, &n.Status, &n.CreatedAt, &sentAt); err != nil {
+				continue
+			}
+			if sentAt.Valid {
+				n.SentAt = sentAt.String
+			}
+			newsletters = append(newsletters, n)
+		}
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(newsletters)
+		return
+	}
+
+	if r.Method == http.MethodPost {
+		var n Newsletter
+		if err := json.NewDecoder(r.Body).Decode(&n); err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		// Check if it's a send action
+		if r.URL.Query().Get("action") == "send" {
+			// Mock sending email
+			// In reality, we would query customers based on n.FilterCriteria
+			log.Printf("📧 Sending Newsletter '%s' to filter '%s'", n.Subject, n.FilterCriteria)
+
+			// Update status if it's an existing newsletter being sent
+			if n.ID != 0 {
+				_, err := db.Exec("UPDATE newsletters SET status = 'sent', sent_at = CURRENT_TIMESTAMP WHERE id = ?", n.ID)
+				if err != nil {
+					http.Error(w, err.Error(), http.StatusInternalServerError)
+					return
+				}
+			} else {
+				// Save as sent immediately
+				_, err := db.Exec("INSERT INTO newsletters (subject, content, filter_criteria, status, sent_at) VALUES (?, ?, ?, 'sent', CURRENT_TIMESTAMP)", n.Subject, n.Content, n.FilterCriteria)
+				if err != nil {
+					http.Error(w, err.Error(), http.StatusInternalServerError)
+					return
+				}
+			}
+
+			json.NewEncoder(w).Encode(map[string]interface{}{"success": true, "message": "Newsletter sent!"})
+			return
+		}
+
+		// Save Draft
+		if n.ID != 0 {
+			_, err := db.Exec("UPDATE newsletters SET subject=?, content=?, filter_criteria=? WHERE id=?", n.Subject, n.Content, n.FilterCriteria, n.ID)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+		} else {
+			_, err := db.Exec("INSERT INTO newsletters (subject, content, filter_criteria) VALUES (?, ?, ?)", n.Subject, n.Content, n.FilterCriteria)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+		}
+
+		json.NewEncoder(w).Encode(map[string]interface{}{"success": true, "message": "Newsletter saved!"})
+		return
+	}
+}
+
+func handleAdminNewsletters(w http.ResponseWriter, r *http.Request) {
+	tmpl.ExecuteTemplate(w, "admin-newsletters.html", nil)
+}
+
+func handleAdminDashboard(w http.ResponseWriter, r *http.Request) {
+	// Check auth if implemented (skipping for prototype)
+	tmpl.ExecuteTemplate(w, "admin-dashboard.html", nil)
 }
