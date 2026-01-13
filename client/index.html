@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Adopt an Apple Tree - Öfvergårds</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background-color: #fdfbf7; }
+        .btn-primary { background-color: #4a6741; color: white; }
+        .btn-primary:hover { background-color: #3d5535; }
+    </style>
+</head>
+<body class="text-gray-800 font-sans">
+    <nav class="p-6">
+        <h1 class="text-2xl font-bold text-green-800">Öfvergårds</h1>
+    </nav>
+
+    <main class="max-w-xl mx-auto p-6">
+        <header class="mb-8 text-center">
+            <h2 class="text-4xl font-serif mb-2">Adopt an Apple Tree</h2>
+            <p class="text-lg text-gray-600">Become a part of our orchard in Åland.</p>
+        </header>
+
+        <form id="adoptForm" class="bg-white p-8 rounded-xl shadow-sm border border-gray-100">
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium mb-1">Your Name</label>
+                    <input type="text" id="name" required class="w-full border p-2 rounded focus:ring-2 focus:ring-green-200 outline-none">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-1">Email Address</label>
+                    <input type="email" id="email" required class="w-full border p-2 rounded focus:ring-2 focus:ring-green-200 outline-none">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-1">Country</label>
+                    <input type="text" id="country" required class="w-full border p-2 rounded focus:ring-2 focus:ring-green-200 outline-none" placeholder="e.g. Finland, Sweden">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-1">Select Tree Variety</label>
+                    <select id="treeType" class="w-full border p-2 rounded focus:ring-2 focus:ring-green-200 outline-none">
+                        <option value="Summer Apple">Summer Apple</option>
+                        <option value="Autumn Apple">Autumn Apple</option>
+                        <option value="Winter Apple">Winter Apple</option>
+                    </select>
+                </div>
+                
+                <div class="pt-4">
+                    <button type="submit" id="submitBtn" class="w-full btn-primary py-3 rounded-lg font-semibold transition-all shadow-md">
+                        Adopt for 50 €
+                    </button>
+                </div>
+            </div>
+        </form>
+    </main>
+    <script src="app.js"></script>
+</body>
+</html>

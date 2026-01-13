@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Öfvergårds</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 p-8">
+    <div class="max-w-4xl mx-auto">
+        <h1 class="text-3xl font-bold mb-8">Customer Management</h1>
+        <div class="bg-white rounded-lg shadow overflow-hidden">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-100">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Customer</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tree</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
+                    </tr>
+                </thead>
+                <tbody id="customerTable" class="bg-white divide-y divide-gray-200">
+                    <!-- Data will be loaded here -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <script>
+        async function loadCustomers() {
+            const resp = await fetch('/api/customers');
+            const customers = await resp.json();
+            const table = document.getElementById('customerTable');
+            table.innerHTML = customers.map(c => `
+                <tr>
+                    <td class="px-6 py-4">
+                        <div class="text-sm font-medium text-gray-900">${c.name}</div>
+                        <div class="text-sm text-gray-500">${c.email}</div>
+                    </td>
+                    <td class="px-6 py-4 text-sm text-gray-500">${c.treeType}</td>
+                    <td class="px-6 py-4">
+                        <span class="px-2 py-1 text-xs rounded-full ${c.paid ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}">
+                            ${c.paid ? 'Paid' : 'Pending'}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 text-sm text-gray-500 text-xs">${new Date(c.createdAt).toLocaleDateString()}</td>
+                </tr>
+            `).join('');
+        }
+        loadCustomers();
+    </script>
+</body>
+</html>
