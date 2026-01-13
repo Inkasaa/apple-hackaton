@@ -184,6 +184,8 @@ func main() {
 	http.HandleFunc("/api/customers", handleGetCustomers)
 	http.HandleFunc("/api/activity", handleGetActivity)
 	http.HandleFunc("/api/stats", handleGetStats)
+	http.HandleFunc("/api/promocodes", handlePromoCodes)
+	http.HandleFunc("/api/promocodes/validate", handleValidatePromo)
 
 	// Visit Booking API
 	http.HandleFunc("/api/slots", handleSlots)
@@ -239,9 +241,19 @@ func initDB() {
 		tree_type TEXT,
 		status TEXT DEFAULT 'interested',
 		newsletter_stage TEXT DEFAULT 'none',
+		years INTEGER DEFAULT 1,
+		promo_code TEXT,
+		is_gift BOOLEAN DEFAULT 0,
+		amount_paid REAL DEFAULT 0,
 		created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 	);`
 	db.Exec(createCustomersTable)
+
+	// Migrations for existing customers table
+	db.Exec("ALTER TABLE customers ADD COLUMN years INTEGER DEFAULT 1")
+	db.Exec("ALTER TABLE customers ADD COLUMN promo_code TEXT")
+	db.Exec("ALTER TABLE customers ADD COLUMN is_gift BOOLEAN DEFAULT 0")
+	db.Exec("ALTER TABLE customers ADD COLUMN amount_paid REAL DEFAULT 0")
 
 	createActivityTable := `
 	CREATE TABLE IF NOT EXISTS activity_log (
@@ -253,6 +265,17 @@ func initDB() {
 		FOREIGN KEY (customer_id) REFERENCES customers(id)
 	);`
 	db.Exec(createActivityTable)
+
+	createPromoTable := `
+	CREATE TABLE IF NOT EXISTS promocodes (
+		id INTEGER PRIMARY KEY AUTOINCREMENT,
+		code TEXT UNIQUE,
+		discount_percent INTEGER,
+		is_one_time BOOLEAN DEFAULT 1,
+		is_used BOOLEAN DEFAULT 0,
+		created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+	);`
+	db.Exec(createPromoTable)
 }
 
 func handleAdopt(w http.ResponseWriter, r *http.Request) {
@@ -262,10 +285,13 @@ func handleAdopt(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var data struct {
-		Name     string `json:"name"`
-		Email    string `json:"email"`
-		Country  string `json:"country"`
-		TreeType string `json:"treeType"`
+		Name      string `json:"name"`
+		Email     string `json:"email"`
+		Country   string `json:"country"`
+		TreeType  string `json:"treeType"`
+		Years     int    `json:"years"`
+		PromoCode string `json:"promoCode"`
+		IsGift    bool   `json:"isGift"`
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&data); err != nil {
@@ -273,10 +299,37 @@ func handleAdopt(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Insert customer with "interested" status
+	if data.Years < 1 {
+		data.Years = 1
+	}
+
+	// Price Calculation
+	basePrice := 60.0
+	totalPrice := basePrice * float64(data.Years)
+
+	// Validate Promo Code
+	if data.PromoCode != "" {
+		var discount int
+		var isOneTime, isUsed bool
+		err := db.QueryRow("SELECT discount_percent, is_one_time, is_used FROM promocodes WHERE code = ?", data.PromoCode).Scan(&discount, &isOneTime, &isUsed)
+		if err == nil {
+			if isOneTime && isUsed {
+				// Code used, ignore or error? Let's ignore for now to not block flow, just don't apply
+				log.Printf("Promo code %s is already used", data.PromoCode)
+			} else {
+				totalPrice = totalPrice * (1.0 - float64(discount)/100.0)
+				// Mark as used if one-time
+				if isOneTime {
+					db.Exec("UPDATE promocodes SET is_used = 1 WHERE code = ?", data.PromoCode)
+				}
+			}
+		}
+	}
+
+	// Insert customer
 	result, err := db.Exec(
-		"INSERT INTO customers (name, email, country, tree_type, status, newsletter_stage) VALUES (?, ?, ?, ?, 'interested', 'none')",
-		data.Name, data.Email, data.Country, data.TreeType)
+		"INSERT INTO customers (name, email, country, tree_type, status, newsletter_stage, years, promo_code, is_gift, amount_paid) VALUES (?, ?, ?, ?, 'interested', 'none', ?, ?, ?, ?)",
+		data.Name, data.Email, data.Country, data.TreeType, data.Years, data.PromoCode, data.IsGift, totalPrice)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -285,9 +338,19 @@ func handleAdopt(w http.ResponseWriter, r *http.Request) {
 
 	id, _ := result.LastInsertId()
 
-	// MOCK: Log the signup activity
-	logActivity(id, "signup", fmt.Sprintf("New adoption interest from %s (%s)", data.Name, data.Email))
-	log.Printf("📝 New signup: %s wants to adopt a %s tree", data.Name, data.TreeType)
+	// Gift Logic
+	giftCode := ""
+	if data.IsGift {
+		// Generate a 100% discount off code
+		giftCode = fmt.Sprintf("GIFT-%d-%d", id, time.Now().Unix()%1000)
+		db.Exec("INSERT INTO promocodes (code, discount_percent, is_one_time, is_used) VALUES (?, 100, 1, 0)", giftCode)
+		logActivity(id, "gift_generated", fmt.Sprintf("Generated gift code: %s", giftCode))
+		log.Printf("🎁 Gift Code Generated for %s: %s", data.Name, giftCode)
+	}
+
+	// Log activity
+	logActivity(id, "signup", fmt.Sprintf("New adoption interest from %s (%d years). Price: %.2f", data.Name, data.Years, totalPrice))
+	log.Printf("📝 New signup: %s wants to adopt a %s tree (%d years)", data.Name, data.TreeType, data.Years)
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]interface{}{
@@ -296,7 +359,73 @@ func handleAdopt(w http.ResponseWriter, r *http.Request) {
 		"id":       id,
 		"name":     data.Name,
 		"treeType": data.TreeType,
+		"amount":   totalPrice,
+		"giftCode": giftCode, // Return to frontend to show (in real app, email it)
 	})
+}
+
+func handlePromoCodes(w http.ResponseWriter, r *http.Request) {
+	if r.Method == http.MethodGet {
+		rows, err := db.Query("SELECT id, code, discount_percent, is_one_time, is_used, created_at FROM promocodes ORDER BY created_at DESC")
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		defer rows.Close()
+		var codes []struct {
+			ID       int64  `json:"id"`
+			Code     string `json:"code"`
+			Discount int    `json:"discount"`
+			OneTime  bool   `json:"oneTime"`
+			Used     bool   `json:"used"`
+			Created  string `json:"created"`
+		}
+		for rows.Next() {
+			var c struct {
+				ID       int64  `json:"id"`
+				Code     string `json:"code"`
+				Discount int    `json:"discount"`
+				OneTime  bool   `json:"oneTime"`
+				Used     bool   `json:"used"`
+				Created  string `json:"created"`
+			}
+			rows.Scan(&c.ID, &c.Code, &c.Discount, &c.OneTime, &c.Used, &c.Created)
+			codes = append(codes, c)
+		}
+		json.NewEncoder(w).Encode(codes)
+	} else if r.Method == http.MethodPost {
+		var req struct {
+			Code     string `json:"code"`
+			Discount int    `json:"discount"`
+			OneTime  bool   `json:"oneTime"`
+		}
+		json.NewDecoder(r.Body).Decode(&req)
+		_, err := db.Exec("INSERT INTO promocodes (code, discount_percent, is_one_time) VALUES (?, ?, ?)", req.Code, req.Discount, req.OneTime)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		json.NewEncoder(w).Encode(map[string]bool{"success": true})
+	}
+}
+
+func handleValidatePromo(w http.ResponseWriter, r *http.Request) {
+	var req struct {
+		Code string `json:"code"`
+	}
+	json.NewDecoder(r.Body).Decode(&req)
+	var discount int
+	var isOneTime, isUsed bool
+	err := db.QueryRow("SELECT discount_percent, is_one_time, is_used FROM promocodes WHERE code = ?", req.Code).Scan(&discount, &isOneTime, &isUsed)
+	if err != nil {
+		json.NewEncoder(w).Encode(map[string]interface{}{"valid": false, "message": "Invalid code"})
+		return
+	}
+	if isOneTime && isUsed {
+		json.NewEncoder(w).Encode(map[string]interface{}{"valid": false, "message": "Code already used"})
+		return
+	}
+	json.NewEncoder(w).Encode(map[string]interface{}{"valid": true, "discount": discount})
 }
 
 // handleConfirmPayment simulates payment confirmation

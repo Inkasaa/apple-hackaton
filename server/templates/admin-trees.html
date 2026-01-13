@@ -62,88 +62,175 @@
             </p>
         </div>
 
-        <!-- Stats Cards -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-            <div class="bg-white p-6 rounded-xl shadow-sm border">
-                <p class="text-sm text-gray-500">Totalt Antal Adoptioner</p>
-                <p id="statTotal" class="text-3xl font-bold text-gray-800">-</p>
+        <!-- Tabs -->
+        <div class="flex border-b border-gray-200 mb-6">
+            <button onclick="showTab('overview')" id="btn-tab-overview"
+                class="border-b-2 border-green-800 text-green-800 font-semibold px-4 py-2 focus:outline-none transition-colors">
+                Översikt
+            </button>
+            <button onclick="showTab('promos')" id="btn-tab-promos"
+                class="text-gray-500 hover:text-gray-800 px-4 py-2 focus:outline-none transition-colors">
+                Kampanjkoder
+            </button>
+        </div>
+
+        <!-- Overview Tab -->
+        <div id="tab-overview">
+            <!-- Stats Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                <div class="bg-white p-6 rounded-xl shadow-sm border">
+                    <p class="text-sm text-gray-500">Totalt Antal Adoptioner</p>
+                    <p id="statTotal" class="text-3xl font-bold text-gray-800">-</p>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-sm border">
+                    <p class="text-sm text-gray-500">Betalande Kunder</p>
+                    <p id="statPaid" class="text-3xl font-bold text-green-600">-</p>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-sm border">
+                    <p class="text-sm text-gray-500">Prenumeranter</p>
+                    <p id="statNewsletter" class="text-3xl font-bold text-blue-600">-</p>
+                </div>
             </div>
-            <div class="bg-white p-6 rounded-xl shadow-sm border">
-                <p class="text-sm text-gray-500">Betalande Kunder</p>
-                <p id="statPaid" class="text-3xl font-bold text-green-600">-</p>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Customers Table -->
+                <div class="lg:col-span-2">
+                    <div class="bg-white rounded-xl shadow-sm border overflow-hidden">
+                        <div class="px-6 py-4 border-b bg-gray-50">
+                            <h2 class="font-semibold text-gray-800">Kunder</h2>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Kund
+                                        </th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Träd
+                                        </th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                                            Status</th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                                            Nyhetsbrev</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="customerTable" class="bg-white divide-y divide-gray-200">
+                                    <tr>
+                                        <td colspan="4" class="px-4 py-8 text-center text-gray-400">Laddar...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Activity Feed -->
+                <div class="lg:col-span-1">
+                    <div class="bg-white rounded-xl shadow-sm border overflow-hidden">
+                        <div class="px-6 py-4 border-b bg-gray-50">
+                            <h2 class="font-semibold text-gray-800">Händelselogg</h2>
+                            <p class="text-xs text-gray-500">Senaste automatiska händelser</p>
+                        </div>
+                        <div id="activityFeed" class="divide-y divide-gray-100 max-h-96 overflow-y-auto">
+                            <div class="px-4 py-8 text-center text-gray-400 text-sm">Laddar...</div>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="bg-white p-6 rounded-xl shadow-sm border">
-                <p class="text-sm text-gray-500">Prenumeranter</p>
-                <p id="statNewsletter" class="text-3xl font-bold text-blue-600">-</p>
+
+            <!-- Legend -->
+            <div class="mt-8 bg-white rounded-xl shadow-sm border p-6">
+                <h3 class="font-semibold text-gray-800 mb-4">Statusflöde (Hur det fungerar)</h3>
+                <div class="flex flex-wrap gap-4 items-center">
+                    <div class="flex items-center gap-2">
+                        <span class="px-2 py-1 text-xs rounded-full status-interested">Intresserad</span>
+                        <span class="text-gray-400 text-xs text-bold">→</span>
+                        <span class="text-xs text-gray-500">Anmälde sig</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="px-2 py-1 text-xs rounded-full status-paid">Betald</span>
+                        <span class="text-gray-400 text-xs text-bold">→</span>
+                        <span class="text-xs text-gray-500">Betalning Mottagen</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="px-2 py-1 text-xs rounded-full status-email_sent">Mail Skickat</span>
+                        <span class="text-gray-400 text-xs text-bold">→</span>
+                        <span class="text-xs text-gray-500">Välkomstmail</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="px-2 py-1 text-xs rounded-full status-subscribed">Prenumerant</span>
+                    </div>
+                </div>
             </div>
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <!-- Customers Table -->
-            <div class="lg:col-span-2">
-                <div class="bg-white rounded-xl shadow-sm border overflow-hidden">
-                    <div class="px-6 py-4 border-b bg-gray-50">
-                        <h2 class="font-semibold text-gray-800">Kunder</h2>
-                    </div>
-                    <div class="overflow-x-auto">
-                        <table class="min-w-full divide-y divide-gray-200">
-                            <thead class="bg-gray-50">
-                                <tr>
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Kund
-                                    </th>
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Träd
-                                    </th>
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status
-                                    </th>
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                                        Nyhetsbrev</th>
-                                </tr>
-                            </thead>
-                            <tbody id="customerTable" class="bg-white divide-y divide-gray-200">
-                                <tr>
-                                    <td colspan="4" class="px-4 py-8 text-center text-gray-400">Laddar...</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
+        <!-- Promo Codes Tab -->
+        <div id="tab-promos" class="hidden">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Create Code -->
+                <div class="md:col-span-1">
+                    <div class="bg-white rounded-xl shadow-sm border p-6">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">Skapa Kampanjkod</h3>
+                        <form id="createPromoForm" class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Kod</label>
+                                <input type="text" id="promoCode" placeholder="ABC-123"
+                                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 border p-2">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Rabatt (%)</label>
+                                <input type="number" id="promoDiscount" placeholder="20"
+                                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 border p-2">
+                            </div>
+                            <div class="flex items-center">
+                                <input type="checkbox" id="promoOneTime" checked
+                                    class="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded">
+                                <label for="promoOneTime" class="ml-2 block text-sm text-gray-900">Engångskod?</label>
+                            </div>
+                            <button type="button" onclick="createPromo()"
+                                class="w-full bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700 transition-colors font-medium">Skapa
+                                Kod</button>
+                        </form>
 
-            <!-- Activity Feed -->
-            <div class="lg:col-span-1">
-                <div class="bg-white rounded-xl shadow-sm border overflow-hidden">
-                    <div class="px-6 py-4 border-b bg-gray-50">
-                        <h2 class="font-semibold text-gray-800">Händelselogg</h2>
-                        <p class="text-xs text-gray-500">Senaste automatiska händelser</p>
-                    </div>
-                    <div id="activityFeed" class="divide-y divide-gray-100 max-h-96 overflow-y-auto">
-                        <div class="px-4 py-8 text-center text-gray-400 text-sm">Laddar...</div>
-                    </div>
-                </div>
-            </div>
-        </div>
+                        <hr class="my-6 border-gray-200">
 
-        <!-- Legend -->
-        <div class="mt-8 bg-white rounded-xl shadow-sm border p-6">
-            <h3 class="font-semibold text-gray-800 mb-4">Statusflöde (Hur det fungerar)</h3>
-            <div class="flex flex-wrap gap-4 items-center">
-                <div class="flex items-center gap-2">
-                    <span class="px-2 py-1 text-xs rounded-full status-interested">Intresserad</span>
-                    <span class="text-gray-400 text-xs text-bold">→</span>
-                    <span class="text-xs text-gray-500">Anmälde sig</span>
+                        <h4 class="text-md font-medium text-gray-800 mb-2">Gåvokod Generering</h4>
+                        <p class="text-xs text-gray-500 mb-3">Skapar en kod med 100% rabatt för en gångs användning.</p>
+                        <button type="button" onclick="generateGiftCode()"
+                            class="w-full bg-blue-50 text-blue-700 border border-blue-200 py-2 px-4 rounded-md hover:bg-blue-100 transition-colors font-medium">Generera
+                            Gåvokod</button>
+                    </div>
                 </div>
-                <div class="flex items-center gap-2">
-                    <span class="px-2 py-1 text-xs rounded-full status-paid">Betald</span>
-                    <span class="text-gray-400 text-xs text-bold">→</span>
-                    <span class="text-xs text-gray-500">Betalning Mottagen</span>
-                </div>
-                <div class="flex items-center gap-2">
-                    <span class="px-2 py-1 text-xs rounded-full status-email_sent">Mail Skickat</span>
-                    <span class="text-gray-400 text-xs text-bold">→</span>
-                    <span class="text-xs text-gray-500">Välkomstmail</span>
-                </div>
-                <div class="flex items-center gap-2">
-                    <span class="px-2 py-1 text-xs rounded-full status-subscribed">Prenumerant</span>
+
+                <!-- Code List -->
+                <div class="md:col-span-2">
+                    <div class="bg-white rounded-xl shadow-sm border overflow-hidden">
+                        <div class="px-6 py-4 border-b bg-gray-50">
+                            <h2 class="font-semibold text-gray-800">Kampanjkoder</h2>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Kod
+                                        </th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                                            Rabatt</th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Typ
+                                        </th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                                            Status</th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                                            Skapad</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="promoTable" class="bg-white divide-y divide-gray-200">
+                                    <tr>
+                                        <td colspan="5" class="px-4 py-8 text-center text-gray-400">Laddar...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -261,12 +348,87 @@
         loadCustomers();
         loadActivity();
 
-        // Auto-refresh every 5 seconds to show automation updates
-        setInterval(() => {
-            loadStats();
-            loadCustomers();
-            loadActivity();
-        }, 5000);
+        // Tab Logic
+        function showTab(id) {
+            document.getElementById('tab-overview').classList.add('hidden');
+            document.getElementById('tab-promos').classList.add('hidden');
+            document.getElementById('tab-' + id).classList.remove('hidden');
+
+            const activeClass = "border-b-2 border-green-800 text-green-800 font-semibold px-4 py-2 focus:outline-none transition-colors";
+            const inactiveClass = "text-gray-500 hover:text-gray-800 px-4 py-2 focus:outline-none transition-colors";
+
+            document.getElementById('btn-tab-overview').className = (id === 'overview') ? activeClass : inactiveClass;
+            document.getElementById('btn-tab-promos').className = (id === 'promos') ? activeClass : inactiveClass;
+
+            if (id === 'promos') loadPromoCodes();
+        }
+
+        async function createPromo() {
+            const data = {
+                code: document.getElementById('promoCode').value,
+                discount: parseInt(document.getElementById('promoDiscount').value),
+                oneTime: document.getElementById('promoOneTime').checked
+            };
+            if (!data.code || !data.discount) return alert("Fyll i alla fält");
+
+            const res = await fetch('/api/promocodes', {
+                method: 'POST',
+                body: JSON.stringify(data)
+            });
+            const result = await res.json();
+            if (result.success) {
+                alert("Kod skapad!");
+                document.getElementById('createPromoForm').reset();
+                loadPromoCodes();
+            } else {
+                alert("Fel vid skapande");
+            }
+        }
+
+        async function generateGiftCode() {
+            const code = 'GIFT-' + Math.random().toString(36).substr(2, 6).toUpperCase();
+            const data = {
+                code: code,
+                discount: 100,
+                oneTime: true
+            };
+            const res = await fetch('/api/promocodes', {
+                method: 'POST',
+                body: JSON.stringify(data)
+            });
+            const result = await res.json();
+            if (result.success) {
+                alert("Gåvokod genererad: " + code);
+                loadPromoCodes();
+            }
+        }
+
+        async function loadPromoCodes() {
+            try {
+                const res = await fetch('/api/promocodes');
+                const codes = await res.json();
+                const table = document.getElementById('promoTable');
+                if (!codes || codes.length === 0) {
+                    table.innerHTML = '<tr><td colspan="5" class="px-4 py-8 text-center text-gray-400">Inga koder.</td></tr>';
+                    return;
+                }
+                table.innerHTML = codes.map(c => `
+                    <tr class="hover:bg-gray-50 transition-colors">
+                        <td class="px-4 py-3 font-mono text-sm">${c.code}</td>
+                        <td class="px-4 py-3 text-sm">${c.discount}%</td>
+                        <td class="px-4 py-3 text-sm">${c.oneTime ? 'Engångs' : 'Flera Gånger'}</td>
+                        <td class="px-4 py-3 text-sm">
+                            <span class="px-2 py-0.5 rounded-full text-xs ${c.used ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'}">
+                                ${c.used ? 'Använd' : 'Aktiv'}
+                            </span>
+                        </td>
+                        <td class="px-4 py-3 text-xs text-gray-500">${new Date(c.created).toLocaleDateString()}</td>
+                    </tr>
+                `).join('');
+            } catch (e) {
+                console.error(e);
+            }
+        }
     </script>
 </body>
 

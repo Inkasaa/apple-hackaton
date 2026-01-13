@@ -12,7 +12,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 name: document.getElementById('name').value,
                 email: document.getElementById('email').value,
                 country: document.getElementById('country').value,
-                treeType: document.getElementById('treeType').value
+                treeType: document.getElementById('treeType').value,
+                years: parseInt(document.getElementById('years').value),
+                isGift: document.getElementById('isGift').checked,
+                promoCode: document.getElementById('promoCode').value
             };
 
             try {
@@ -24,8 +27,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 const result = await response.json();
                 if (result.success) {
-                    // Redirect to payment page with customer info
-                    window.location.href = `/payment.html?id=${result.id}&name=${encodeURIComponent(result.name)}&tree=${encodeURIComponent(result.treeType)}`;
+                    if (result.giftCode) {
+                        alert(`Tack! Din gåvobeställning är mottagen. Här är gåvokoden att ge bort: ${result.giftCode}`);
+                    }
+                    // Redirect to payment page with customer info (and amount if needed)
+                    window.location.href = `/payment.html?id=${result.id}&name=${encodeURIComponent(result.name)}&tree=${encodeURIComponent(result.treeType)}&amount=${result.amount}`;
                 } else {
                     alert('Something went wrong. Please try again.');
                     btn.disabled = false;
@@ -40,3 +46,44 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 });
+
+let currentDiscount = 0;
+const basePrice = 60;
+
+function updatePrice() {
+    const years = parseInt(document.getElementById('years').value);
+    const total = basePrice * years * (1 - currentDiscount / 100);
+
+    const btn = document.getElementById('submitBtn');
+    if (btn) {
+        btn.innerText = `ADOPTERA TRÄD (${Math.round(total)}€)`;
+    }
+}
+
+async function checkPromo() {
+    const code = document.getElementById('promoCode').value;
+    const msg = document.getElementById('promoMessage');
+    if (!code) return;
+
+    try {
+        const res = await fetch('/api/promocodes/validate', {
+            method: 'POST',
+            body: JSON.stringify({ code })
+        });
+        const result = await res.json();
+
+        if (result.valid) {
+            currentDiscount = result.discount;
+            msg.style.color = 'green';
+            msg.innerText = `Rabatt på ${result.discount}% applicerad!`;
+            updatePrice();
+        } else {
+            currentDiscount = 0;
+            msg.style.color = 'red';
+            msg.innerText = result.message || "Ogiltig kod";
+            updatePrice();
+        }
+    } catch (e) {
+        console.error(e);
+    }
+}
