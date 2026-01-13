@@ -1,0 +1,214 @@
+{{define "content"}}
+<div class="min-h-screen bg-gradient-to-b from-green-50 to-amber-50">
+    <!-- Header -->
+    <div class="text-white py-12" style="background-color: #4a6741;">
+        <div class="max-w-2xl mx-auto px-4 text-center">
+            <div class="text-5xl mb-4">🍎</div>
+            <h1 class="text-3xl font-bold mb-2">Feedback</h1>
+            <p class="text-green-100">Help us make your experience even better</p>
+        </div>
+    </div>
+
+    <!-- Survey Form -->
+    <div class="max-w-2xl mx-auto px-4 py-12">
+        <div class="bg-white rounded-2xl shadow-xl p-8">
+            <form id="feedbackForm" class="space-y-8">
+                <!-- Rating -->
+                <div>
+                    <label class="block text-lg font-semibold text-gray-800 mb-4">
+                        How would you rate your overall experience?
+                    </label>
+                    <div class="flex justify-center gap-4" id="ratingStars">
+                        <button type="button" data-rating="1" class="rating-star text-4xl text-gray-300 hover:text-yellow-400 transition-colors">★</button>
+                        <button type="button" data-rating="2" class="rating-star text-4xl text-gray-300 hover:text-yellow-400 transition-colors">★</button>
+                        <button type="button" data-rating="3" class="rating-star text-4xl text-gray-300 hover:text-yellow-400 transition-colors">★</button>
+                        <button type="button" data-rating="4" class="rating-star text-4xl text-gray-300 hover:text-yellow-400 transition-colors">★</button>
+                        <button type="button" data-rating="5" class="rating-star text-4xl text-gray-300 hover:text-yellow-400 transition-colors">★</button>
+                    </div>
+                    <input type="hidden" id="rating" name="rating" value="0">
+                    <p id="ratingText" class="text-center mt-2 text-gray-500">Click to rate</p>
+                </div>
+
+                <!-- Experience Description -->
+                <div>
+                    <label class="block text-lg font-semibold text-gray-800 mb-2" for="experience">
+                        Tell us about your visit
+                    </label>
+                    <p class="text-gray-500 text-sm mb-3">What did you purchase? How was the atmosphere?</p>
+                    <textarea 
+                        id="experience" 
+                        name="experience" 
+                        rows="4" 
+                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                        placeholder="I visited the farm shop and..."
+                    ></textarea>
+                </div>
+
+                <!-- Highlight -->
+                <div>
+                    <label class="block text-lg font-semibold text-gray-800 mb-2" for="highlight">
+                        What was the highlight of your visit?
+                    </label>
+                    <textarea 
+                        id="highlight" 
+                        name="highlight" 
+                        rows="3" 
+                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                        placeholder="The best part was..."
+                    ></textarea>
+                </div>
+
+                <!-- Improvement -->
+                <div>
+                    <label class="block text-lg font-semibold text-gray-800 mb-2" for="improvement">
+                        What could we improve?
+                    </label>
+                    <textarea 
+                        id="improvement" 
+                        name="improvement" 
+                        rows="3" 
+                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                        placeholder="It would be even better if..."
+                    ></textarea>
+                </div>
+
+                <!-- Would Recommend -->
+                <div>
+                    <label class="block text-lg font-semibold text-gray-800 mb-4">
+                        Would you recommend our farm shop to friends?
+                    </label>
+                    <div class="flex gap-4">
+                        <button type="button" id="recommendYes" class="flex-1 py-3 px-6 border-2 border-gray-300 rounded-lg text-gray-600 hover:border-green-500 hover:bg-green-50 transition-all">
+                            👍 Yes, definitely!
+                        </button>
+                        <button type="button" id="recommendNo" class="flex-1 py-3 px-6 border-2 border-gray-300 rounded-lg text-gray-600 hover:border-red-300 hover:bg-red-50 transition-all">
+                            🤔 Maybe not yet
+                        </button>
+                    </div>
+                    <input type="hidden" id="wouldRecommend" name="wouldRecommend" value="">
+                </div>
+
+                <!-- Email (Optional) -->
+                <div>
+                    <label class="block text-lg font-semibold text-gray-800 mb-2" for="email">
+                        Email (optional)
+                    </label>
+                    <p class="text-gray-500 text-sm mb-3">Leave your email if you'd like us to follow up</p>
+                    <input 
+                        type="email" 
+                        id="email" 
+                        name="email" 
+                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                        placeholder="your@email.com"
+                    >
+                </div>
+
+                <!-- Submit -->
+                <div class="pt-4">
+                    <button 
+                        type="submit" 
+                        class="w-full text-white py-4 px-8 rounded-lg font-semibold text-lg transition-colors shadow-lg"
+                        style="background-color: #4a6741;"
+                        onmouseover="this.style.backgroundColor='#3d5535'"
+                        onmouseout="this.style.backgroundColor='#4a6741'"
+                    >
+                        Submit Feedback
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Demo Notice -->
+        <div class="mt-8 p-4 bg-blue-50 border border-blue-200 rounded-lg text-center">
+            <p class="text-blue-700 text-sm">
+                🎭 <strong>Demo Mode:</strong> This is a mock feedback form for demonstration purposes.
+            </p>
+        </div>
+    </div>
+</div>
+
+<script>
+let selectedRating = 0;
+let wouldRecommend = null;
+
+const ratingTexts = {
+    0: 'Click to rate',
+    1: 'Poor - Needs improvement',
+    2: 'Fair - Below expectations',
+    3: 'Good - Met expectations',
+    4: 'Very Good - Above expectations',
+    5: 'Excellent - Outstanding!'
+};
+
+// Star rating
+document.querySelectorAll('.rating-star').forEach(star => {
+    star.addEventListener('click', () => {
+        selectedRating = parseInt(star.dataset.rating);
+        document.getElementById('rating').value = selectedRating;
+        document.getElementById('ratingText').textContent = ratingTexts[selectedRating];
+        
+        document.querySelectorAll('.rating-star').forEach((s, index) => {
+            if (index < selectedRating) {
+                s.classList.remove('text-gray-300');
+                s.classList.add('text-yellow-400');
+            } else {
+                s.classList.remove('text-yellow-400');
+                s.classList.add('text-gray-300');
+            }
+        });
+    });
+});
+
+// Recommend buttons
+document.getElementById('recommendYes').addEventListener('click', () => {
+    wouldRecommend = true;
+    document.getElementById('wouldRecommend').value = 'true';
+    document.getElementById('recommendYes').classList.add('border-green-500', 'bg-green-50', 'text-green-700');
+    document.getElementById('recommendNo').classList.remove('border-red-300', 'bg-red-50', 'text-red-700');
+});
+
+document.getElementById('recommendNo').addEventListener('click', () => {
+    wouldRecommend = false;
+    document.getElementById('wouldRecommend').value = 'false';
+    document.getElementById('recommendNo').classList.add('border-red-300', 'bg-red-50', 'text-red-700');
+    document.getElementById('recommendYes').classList.remove('border-green-500', 'bg-green-50', 'text-green-700');
+});
+
+// Form submission
+document.getElementById('feedbackForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    if (selectedRating === 0) {
+        alert('Please select a rating');
+        return;
+    }
+
+    const data = {
+        surveyType: 'farmshop',
+        rating: selectedRating,
+        experience: document.getElementById('experience').value,
+        highlight: document.getElementById('highlight').value,
+        improvement: document.getElementById('improvement').value,
+        wouldRecommend: wouldRecommend === true,
+        email: document.getElementById('email').value
+    };
+
+    try {
+        const response = await fetch('/api/feedback', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+
+        if (response.ok) {
+            window.location.href = '/feedback/thanks';
+        } else {
+            alert('Error submitting feedback. Please try again.');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Error submitting feedback. Please try again.');
+    }
+});
+</script>
+{{end}}

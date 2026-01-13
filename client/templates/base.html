@@ -1,0 +1,207 @@
+{{define "base"}}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{.Title}} - Öfvergårds</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background-color: #fdfbf7;
+            font-family: 'Georgia', serif;
+        }
+
+        .font-sans {
+            font-family: system-ui, -apple-system, sans-serif;
+        }
+
+        .btn-primary {
+            background-color: #4a6741;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: #3d5535;
+        }
+
+        .btn-outline {
+            border: 2px solid #4a6741;
+            color: #4a6741;
+        }
+
+        .btn-outline:hover {
+            background-color: #4a6741;
+            color: white;
+        }
+
+        .text-green-brand {
+            color: #4a6741;
+        }
+
+        .bg-green-brand {
+            background-color: #4a6741;
+        }
+
+        .bg-warm {
+            background-color: #f9f6f1;
+        }
+
+        .bg-warm-dark {
+            background-color: #f0ebe3;
+        }
+
+        /* Hover Underscore Animation */
+        .hover-underline-animation {
+            display: inline-block;
+            position: relative;
+        }
+
+        .hover-underline-animation::after {
+            content: '';
+            position: absolute;
+            width: 100%;
+            transform: scaleX(0);
+            height: 2px;
+            bottom: 0;
+            left: 0;
+            background-color: white;
+            transform-origin: bottom right;
+            transition: transform 0.25s ease-out;
+        }
+
+        .hover-underline-animation:hover::after {
+            transform: scaleX(1);
+            transform-origin: bottom left;
+        }
+</head>
+
+<body class="text-gray-800 min-h-screen flex flex-col">
+    <!-- Navigation -->
+    <!-- Navigation: Simple Mode -->
+    <nav id="simpleHeader" class="bg-white/80 backdrop-blur-sm sticky top-0 z-50 border-b border-gray-100">
+        <div class="max-w-5xl mx-auto px-6 py-4">
+            <div class="flex justify-between items-center">
+                <a href="/" class="text-xl font-bold text-green-brand">
+                    🍎 Öfvergårds
+                </a>
+
+                <!-- Mobile menu button -->
+                <button id="menuBtn" class="md:hidden p-2 text-gray-600" onclick="toggleMenu()">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 6h16M4 12h16M4 18h16" />
+                    </svg>
+                </button>
+
+                <!-- Desktop Navigation -->
+                <div class="hidden md:flex items-center gap-6">
+                    <a href="/"
+                        class="text-sm font-sans text-gray-600 hover:text-green-brand transition-colors">Home</a>
+                </div>
+            </div>
+
+            <!-- Mobile Navigation -->
+            <div id="mobileMenu" class="hidden md:hidden pt-4 pb-2 border-t mt-4">
+                <div class="flex flex-col gap-3">
+                    <a href="/" class="text-sm font-sans text-gray-600 hover:text-green-brand">Home</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Navigation: Original Mode (Replica) -->
+    <nav id="originalHeader" class="hidden sticky top-0 z-50"
+        style="background-color: #751C1E; font-family: system-ui, sans-serif;">
+        <div class="max-w-6xl mx-auto px-4 py-4">
+            <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                <!-- Logo -->
+                <div class="flex-shrink-0">
+                    <a href="/">
+                        <img src="https://i0.wp.com/ofvergards.ax/wp-content/uploads/2020/08/%C3%96fverg%C3%A5rds_logo.png?fit=557%2C600&ssl=1"
+                            alt="Öfvergårds" class="h-16 w-auto">
+                    </a>
+                </div>
+
+                <!-- Desktop Links (Mirrored) -->
+                <div
+                    class="hidden md:flex flex-wrap justify-end gap-6 text-sm uppercase font-bold tracking-wide text-white">
+                    <a href="/" class="hover:text-gray-200 transition-colors hover-underline-animation">Start</a>
+                    <a href="/om-oss/" class="hover:text-gray-200 transition-colors hover-underline-animation">Om oss</a>
+                    <a href="/gardsbesok/" class="hover:text-gray-200 transition-colors hover-underline-animation">Gårdsbesök</a>
+                    <a href="/vara-produkter/" class="hover:text-gray-200 transition-colors hover-underline-animation">Våra produkter</a>
+                    <a href="/mitt-appeltrad/index.html" class="hover:text-gray-200 transition-colors hover-underline-animation">Mitt
+                        äppelträd</a>
+                    <a href="/kontakta-oss/" class="hover:text-gray-200 transition-colors hover-underline-animation">Kontakta oss</a>
+                </div>
+                <!-- Mobile toggle for original? Keeping it simple for now -->
+                <div class="md:hidden absolute top-4 right-4 text-white text-xs uppercase tracking-widest">
+                    MENU
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="flex-1">
+        {{template "content" .}}
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-warm-dark border-t border-gray-200 mt-16">
+        <div class="max-w-5xl mx-auto px-6 py-12">
+            <div class="text-center">
+                <p class="text-green-brand font-bold text-lg mb-2">Öfvergårds</p>
+                <p class="text-sm text-gray-500 font-sans">Åland archipelago, Finland</p>
+                <p class="text-xs text-gray-400 font-sans mt-4">
+                    A small family farm sharing nature, apples, and quiet moments.
+                </p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Header Switcher Toggle -->
+    <button id="headerToggleBtn" onclick="toggleHeaderMode()"
+        class="fixed bottom-4 right-4 bg-white border border-gray-200 shadow-lg p-2 rounded-full text-xs text-gray-500 hover:bg-gray-50 z-50 pointer-events-auto"
+        title="Switch Header Style">
+        🔄 Switch Header
+    </button>
+
+    <script>
+        function toggleMenu() {
+            const menu = document.getElementById('mobileMenu');
+            menu.classList.toggle('hidden');
+        }
+
+        // Header Switch Logic
+        function toggleHeaderMode() {
+            const simpleHeader = document.getElementById('simpleHeader');
+            const originalHeader = document.getElementById('originalHeader');
+
+            if (simpleHeader.classList.contains('hidden')) {
+                // Switch to Simple
+                simpleHeader.classList.remove('hidden');
+                originalHeader.classList.add('hidden');
+                localStorage.setItem('headerMode', 'simple');
+            } else {
+                // Switch to Original
+                simpleHeader.classList.add('hidden');
+                originalHeader.classList.remove('hidden');
+                localStorage.setItem('headerMode', 'original');
+            }
+        }
+
+        // Init Header Mode
+        document.addEventListener('DOMContentLoaded', () => {
+            const mode = localStorage.getItem('headerMode');
+            if (mode === 'original') {
+                document.getElementById('simpleHeader').classList.add('hidden');
+                document.getElementById('originalHeader').classList.remove('hidden');
+            }
+        });
+    </script>
+</body>
+
+</html>
+{{end}}
