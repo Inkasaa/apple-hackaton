@@ -1,92 +1,299 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Welcome to Öfvergårds!</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { background-color: #fdfbf7; }
+        body {
+            background-color: #fdfbf7;
+            font-family: 'Georgia', serif;
+        }
+
+        .font-sans {
+            font-family: system-ui, -apple-system, sans-serif;
+        }
+
+        .btn-primary {
+            background-color: #4a6741;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: #3d5535;
+        }
+
+        .btn-outline {
+            border: 2px solid #4a6741;
+            color: #4a6741;
+        }
+
+        .btn-outline:hover {
+            background-color: #4a6741;
+            color: white;
+        }
+
+        .text-green-brand {
+            color: #4a6741;
+        }
+
+        .bg-green-brand {
+            background-color: #4a6741;
+        }
+
+        .bg-warm {
+            background-color: #f9f6f1;
+        }
+
+        .bg-warm-dark {
+            background-color: #f0ebe3;
+        }
     </style>
 </head>
-<body class="text-gray-800 font-sans">
-    <nav class="p-6">
-        <h1 class="text-2xl font-bold text-green-800">Öfvergårds</h1>
-    </nav>
 
-    <main class="max-w-xl mx-auto p-6">
-        <!-- Progress Steps - All Complete -->
-        <div class="flex items-center justify-center mb-8">
-            <div class="flex items-center">
-                <div class="w-8 h-8 bg-green-600 text-white rounded-full flex items-center justify-center text-sm font-bold">✓</div>
-                <span class="ml-2 text-sm text-green-700 font-medium">Sign Up</span>
+<body class="text-gray-800 min-h-screen flex flex-col">
+    <!-- Navigation -->
+    <nav id="simpleHeader" class="bg-white/80 backdrop-blur-sm sticky top-0 z-50 border-b border-gray-100">
+        <div class="max-w-5xl mx-auto px-6 py-4">
+            <div class="flex justify-between items-center">
+                <a href="/" class="text-xl font-bold text-green-brand">
+                    🍎 Öfvergårds
+                </a>
+
+                <!-- Mobile menu button -->
+                <button id="menuBtn" class="md:hidden p-2 text-gray-600" onclick="toggleMenu()">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 6h16M4 12h16M4 18h16" />
+                    </svg>
+                </button>
+
+                <!-- Desktop Navigation -->
+                <div class="hidden md:flex items-center gap-6">
+                    <a href="/"
+                        class="text-sm font-sans text-gray-600 hover:text-green-brand transition-colors">Home</a>
+                </div>
             </div>
-            <div class="w-12 h-1 bg-green-600 mx-2"></div>
-            <div class="flex items-center">
-                <div class="w-8 h-8 bg-green-600 text-white rounded-full flex items-center justify-center text-sm font-bold">✓</div>
-                <span class="ml-2 text-sm text-green-700 font-medium">Payment</span>
-            </div>
-            <div class="w-12 h-1 bg-green-600 mx-2"></div>
-            <div class="flex items-center">
-                <div class="w-8 h-8 bg-green-600 text-white rounded-full flex items-center justify-center text-sm font-bold">✓</div>
-                <span class="ml-2 text-sm text-green-700 font-medium">Complete</span>
+
+            <!-- Mobile Navigation -->
+            <div id="mobileMenu" class="hidden md:hidden pt-4 pb-2 border-t mt-4">
+                <div class="flex flex-col gap-3">
+                    <a href="/" class="text-sm font-sans text-gray-600 hover:text-green-brand">Home</a>
+                </div>
             </div>
         </div>
+    </nav>
 
-        <!-- Success Card -->
-        <div class="bg-white p-8 rounded-xl shadow-sm border border-gray-100 text-center">
-            <div class="text-6xl mb-4">🍎</div>
-            <h2 class="text-3xl font-serif text-green-800 mb-2">Welcome to the Family!</h2>
-            <p class="text-gray-600 mb-6">
-                Thank you, <strong id="customerName">friend</strong>! Your apple tree adoption is complete.
-            </p>
+    <!-- Navigation: Original Mode (Replica) -->
+    <nav id="originalHeader" class="hidden sticky top-0 z-50"
+        style="background-color: #751C1E; font-family: system-ui, sans-serif;">
+        <div class="max-w-6xl mx-auto px-4 py-4">
+            <div class="flex flex-col md:flex-row items-center justify-between gap-4">
+                <!-- Logo -->
+                <div class="flex-shrink-0">
+                    <a href="/">
+                        <img src="https://i0.wp.com/ofvergards.ax/wp-content/uploads/2020/08/%C3%96fverg%C3%A5rds_logo.png?fit=557%2C600&ssl=1"
+                            alt="Öfvergårds" class="h-16 w-auto">
+                    </a>
+                </div>
 
-            <!-- What Happens Next -->
-            <div class="bg-green-50 rounded-lg p-6 text-left mb-6">
-                <h3 class="font-semibold text-green-800 mb-3">What happens next?</h3>
-                <ul class="space-y-2 text-sm text-green-700">
-                    <li class="flex items-start gap-2">
-                        <span class="text-green-500 mt-0.5">✓</span>
-                        <span>Confirmation email sent to your inbox</span>
-                    </li>
-                    <li class="flex items-start gap-2">
-                        <span class="text-green-500 mt-0.5">✓</span>
-                        <span>You've been added to our Apple Tree Newsletter</span>
-                    </li>
-                    <li class="flex items-start gap-2">
-                        <span class="text-green-500 mt-0.5">✓</span>
-                        <span>We'll send seasonal updates about your tree</span>
-                    </li>
-                    <li class="flex items-start gap-2">
-                        <span class="text-green-500 mt-0.5">✓</span>
-                        <span>Harvest time? You'll be the first to know!</span>
-                    </li>
-                </ul>
+                <!-- Desktop Links (Mirrored) -->
+                <div
+                    class="hidden md:flex flex-wrap justify-center gap-6 text-sm uppercase font-bold tracking-wide text-white">
+                    <a href="/"
+                        class="hover:text-gray-200 hover:underline decoration-[#D85F31] decoration-[3px] underline-offset-[6px] transition-colors">Start</a>
+                    <a href="/om-oss/"
+                        class="hover:text-gray-200 hover:underline decoration-[#D85F31] decoration-[3px] underline-offset-[6px] transition-colors">Om
+                        oss</a>
+                    <a href="/gardsbesok/"
+                        class="hover:text-gray-200 hover:underline decoration-[#D85F31] decoration-[3px] underline-offset-[6px] transition-colors">Gårdsbesök</a>
+                    <a href="/vara-produkter/"
+                        class="hover:text-gray-200 hover:underline decoration-[#D85F31] decoration-[3px] underline-offset-[6px] transition-colors">Våra
+                        produkter</a>
+                    <a href="/mitt-appeltrad/index.html"
+                        class="hover:text-gray-200 hover:underline decoration-[#D85F31] decoration-[3px] underline-offset-[6px] transition-colors">Mitt
+                        äppelträd</a>
+                    <a href="/kontakta-oss/"
+                        class="hover:text-gray-200 hover:underline decoration-[#D85F31] decoration-[3px] underline-offset-[6px] transition-colors">Kontakta
+                        oss</a>
+                </div>
+                <div class="md:hidden text-white text-xs uppercase tracking-widest">
+                    MENU
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="flex-1">
+        <div class="max-w-xl mx-auto p-6">
+            <!-- Progress Steps - All Complete -->
+            <div class="flex items-center justify-center mb-8 mt-4">
+                <div class="flex items-center">
+                    <div
+                        class="w-8 h-8 bg-green-600 text-white rounded-full flex items-center justify-center text-sm font-bold font-sans">
+                        ✓</div>
+                    <span class="ml-2 text-sm text-green-700 font-medium font-sans">Sign Up</span>
+                </div>
+                <div class="w-12 h-1 bg-green-600 mx-2"></div>
+                <div class="flex items-center">
+                    <div
+                        class="w-8 h-8 bg-green-600 text-white rounded-full flex items-center justify-center text-sm font-bold font-sans">
+                        ✓</div>
+                    <span class="ml-2 text-sm text-green-700 font-medium font-sans">Payment</span>
+                </div>
+                <div class="w-12 h-1 bg-green-600 mx-2"></div>
+                <div class="flex items-center">
+                    <div
+                        class="w-8 h-8 bg-green-600 text-white rounded-full flex items-center justify-center text-sm font-bold font-sans">
+                        ✓</div>
+                    <span class="ml-2 text-sm text-green-700 font-medium font-sans">Complete</span>
+                </div>
             </div>
 
-            <!-- Mock Notification -->
-            <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-sm text-yellow-800 mb-6">
-                🎭 <strong>Demo:</strong> In production, you would receive a real email with your adoption certificate and tree details.
-            </div>
+            <!-- Success Card -->
+            <div class="bg-white p-8 rounded-xl shadow-sm border border-gray-100 text-center">
+                <div class="text-6xl mb-4">🍎</div>
+                <h2 id="successTitle" class="text-3xl font-bold text-green-brand mb-2">Welcome to the Family!</h2>
+                <p class="text-gray-600 mb-6 font-sans">
+                    <span id="successMessage">Thank you, <strong id="customerName">friend</strong>! Your apple tree
+                        adoption is complete.</span>
+                </p>
 
-            <div class="flex flex-col sm:flex-row gap-3 justify-center">
-                <a href="/" class="px-6 py-2 bg-green-700 text-white rounded-lg font-medium hover:bg-green-800 transition-colors">
-                    Adopt Another Tree
-                </a>
-                <a href="/admin.html" class="px-6 py-2 border border-green-700 text-green-700 rounded-lg font-medium hover:bg-green-50 transition-colors">
-                    View Admin Dashboard
-                </a>
+                <!-- What Happens Next -->
+                <div class="bg-green-50 rounded-lg p-6 text-left mb-6 border border-green-100">
+                    <h3 class="font-semibold text-green-800 mb-3 font-sans">What happens next?</h3>
+                    <ul id="nextStepsList" class="space-y-2 text-sm text-green-700 font-sans">
+                        <li class="flex items-start gap-2">
+                            <span class="text-green-500 mt-0.5">✓</span>
+                            <span>Confirmation email sent to your inbox</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <span class="text-green-500 mt-0.5">✓</span>
+                            <span>You've been added to our Apple Tree Newsletter</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <span class="text-green-500 mt-0.5">✓</span>
+                            <span>We'll send seasonal updates about your tree</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <span class="text-green-500 mt-0.5">✓</span>
+                            <span>Harvest time? You'll be the first to know!</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Mock Notification -->
+                <div id="demoMessage"
+                    class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-sm text-yellow-800 mb-6 font-sans">
+                    🎭 <strong>Demo:</strong> In production, you would receive a real email with your adoption
+                    certificate and tree details.
+                </div>
+
+                <div class="flex flex-col sm:flex-row gap-3 justify-center">
+                    <a id="ctaButton" href="/"
+                        class="px-6 py-3 bg-green-brand text-white rounded-lg font-medium hover:bg-green-800 transition-colors font-sans btn-primary">
+                        Go to Homepage
+                    </a>
+                </div>
             </div>
         </div>
     </main>
 
+    <!-- Footer -->
+    <footer class="bg-warm-dark border-t border-gray-200 mt-16">
+        <div class="max-w-5xl mx-auto px-6 py-12">
+            <div class="text-center">
+                <p class="text-green-brand font-bold text-lg mb-2">Öfvergårds</p>
+                <p class="text-sm text-gray-500 font-sans">Åland archipelago, Finland</p>
+                <p class="text-xs text-gray-400 font-sans mt-4">
+                    A small family farm sharing nature, apples, and quiet moments.
+                </p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Header Switcher Toggle -->
+    <button id="headerToggleBtn" onclick="toggleHeaderMode()"
+        class="fixed bottom-4 right-4 bg-white border border-gray-200 shadow-lg p-3 rounded-full text-xs text-gray-500 hover:bg-gray-50 z-50 pointer-events-auto transition-transform hover:scale-110"
+        title="Switch Style">
+        🔄
+    </button>
+
     <script>
-        // Get customer name from URL params
+        function toggleMenu() {
+            const menu = document.getElementById('mobileMenu');
+            menu.classList.toggle('hidden');
+        }
+
+        // Header Switch Logic
+        function toggleHeaderMode() {
+            const simpleHeader = document.getElementById('simpleHeader');
+            const originalHeader = document.getElementById('originalHeader');
+
+            if (simpleHeader.classList.contains('hidden')) {
+                // Switch to Simple
+                simpleHeader.classList.remove('hidden');
+                originalHeader.classList.add('hidden');
+                localStorage.setItem('headerMode', 'simple');
+            } else {
+                // Switch to Original
+                simpleHeader.classList.add('hidden');
+                originalHeader.classList.remove('hidden');
+                localStorage.setItem('headerMode', 'original');
+            }
+        }
+
+        // Init Header Mode
+        document.addEventListener('DOMContentLoaded', () => {
+            const mode = localStorage.getItem('headerMode');
+            if (mode === 'original') {
+                if (document.getElementById('simpleHeader')) document.getElementById('simpleHeader').classList.add('hidden');
+                if (document.getElementById('originalHeader')) document.getElementById('originalHeader').classList.remove('hidden');
+            }
+        });
+
+        // Get data from URL params
         const params = new URLSearchParams(window.location.search);
         const name = params.get('name');
+        const type = params.get('type'); // 'visit' or 'adopt'
+
         if (name) {
             document.getElementById('customerName').textContent = name;
         }
+
+        // Dynamic Content Logic
+        if (type === 'visit') {
+            document.getElementById('successTitle').textContent = "Booking Confirmed!";
+            document.getElementById('successMessage').innerHTML = `Can't wait to see you, <strong id="customerName">${name || 'friend'}</strong>! Your visit is booked.`;
+
+            document.getElementById('nextStepsList').innerHTML = `
+                <li class="flex items-start gap-2">
+                    <span class="text-green-500 mt-0.5">✓</span>
+                    <span>Booking confirmation sent to your email</span>
+                </li>
+                 <li class="flex items-start gap-2">
+                    <span class="text-green-500 mt-0.5">✓</span>
+                    <span>Directions to Öfvergårds included</span>
+                </li>
+                <li class="flex items-start gap-2">
+                    <span class="text-green-500 mt-0.5">✓</span>
+                    <span>See you soon for a great experience!</span>
+                </li>
+             `;
+
+            const btn = document.getElementById('ctaButton');
+            btn.textContent = "Back to Home";
+            btn.href = "/";
+
+            document.getElementById('demoMessage').innerHTML = `🎭 <strong>Demo:</strong> In production, you would receive a real email with your booking confirmation and directions.`;
+        } else {
+            // Default: Adoption (already static HTML, but good to ensure default state if needed)
+            // No changes needed as HTML defaults to adoption
+        }
     </script>
 </body>
+
 </html>

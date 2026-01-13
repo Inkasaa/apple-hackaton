@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="sv">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nyhetsbrev - Öfvergårds Admin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Quill CSS -->
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+</head>
+
+<body class="bg-gray-50 min-h-screen font-sans">
+
+    <!-- Header -->
+    <nav class="bg-white shadow-sm border-b">
+        <div class="max-w-6xl mx-auto px-6 py-4 flex justify-between items-center">
+            <div class="flex items-center gap-6">
+                <div>
+                    <h1 class="text-xl font-bold text-green-800">🍎 Öfvergårds Admin</h1>
+                </div>
+                <!-- Mini Nav -->
+                <div class="hidden md:flex gap-4 text-sm">
+                    <a href="/admin" class="text-gray-500 hover:text-green-800">Dashboard</a>
+                    <a href="/admin/visits" class="text-gray-500 hover:text-green-800">Besök</a>
+                    <a href="/admin/newsletters" class="font-semibold text-green-800">Nyhetsbrev</a>
+                    <a href="/admin/trees" class="text-gray-500 hover:text-green-800">Adoptera Träd</a>
+                </div>
+            </div>
+            <div class="flex gap-4 items-center">
+                <a href="/" class="text-sm text-green-700 hover:underline">← Till Hemsidan</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-6xl mx-auto p-6">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-2xl font-bold text-gray-800">Hantera Nyhetsbrev</h2>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+            <!-- Create/Edit Section -->
+            <div class="lg:col-span-2">
+                <div class="bg-white rounded-xl shadow-sm border p-6">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4">Skapa / Redigera</h3>
+                    <form id="newsletterForm" class="space-y-4">
+                        <input type="hidden" id="newsletterId">
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Ämne</label>
+                            <input type="text" id="subject" required placeholder="T.ex. Sommarhälsning från Öfvergårds"
+                                class="w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 border p-2">
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Mottagare (Filter)</label>
+                            <div class="relative">
+                                <select id="filterCriteria"
+                                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 border p-2 appearance-none bg-white">
+                                    <option value="all">Alla Kunder</option>
+                                    <option value="tree_owners">Äppelträdskunder</option>
+                                    <option value="visit_customers">Besökskunder</option>
+                                    <option value="safari">Endast Safari</option>
+                                    <option value="tasting">Endast Mustprovning</option>
+                                </select>
+                                <div
+                                    class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                                    <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg"
+                                        viewBox="0 0 20 20">
+                                        <path
+                                            d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Innehåll</label>
+                            <div class="bg-white rounded-md border border-gray-300">
+                                <div id="editor" style="min-height: 250px; border:none;" class="rounded-b-md"></div>
+                            </div>
+                        </div>
+
+                        <div class="flex gap-3 pt-2">
+                            <button type="button" onclick="saveDraft()"
+                                class="flex-1 bg-gray-600 text-white py-2 px-4 rounded-md hover:bg-gray-700 transition-colors font-medium">Spara
+                                Utkast</button>
+                            <button type="button" onclick="sendNewsletter()"
+                                class="flex-1 bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700 transition-colors font-medium">Skicka
+                                Nu</button>
+                            <button type="button" onclick="resetForm()"
+                                class="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors">Rensa</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- List Section -->
+            <div class="lg:col-span-1">
+                <div class="bg-white rounded-xl shadow-sm border p-6 h-full">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4">Tidigare Nyhetsbrev</h3>
+                    <div id="newsletterList" class="space-y-4 max-h-[600px] overflow-y-auto pr-2">
+                        <p class="text-gray-500 text-sm italic">Laddar...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Quill JS -->
+    <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+    <script>
+        // Custom Quill Toolbar options could be added here
+        var quill = new Quill('#editor', {
+            theme: 'snow',
+            placeholder: 'Skriv ditt meddelande här...',
+            modules: {
+                toolbar: [
+                    [{ 'header': [1, 2, 3, false] }],
+                    ['bold', 'italic', 'underline'],
+                    [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+                    ['link', 'clean']
+                ]
+            }
+        });
+
+        async function loadNewsletters() {
+            const res = await fetch('/api/newsletters');
+            const list = await res.json();
+            const container = document.getElementById('newsletterList');
+
+            if (list.length === 0) {
+                container.innerHTML = '<p class="text-gray-500 text-sm">Inga nyhetsbrev hittades.</p>';
+                return;
+            }
+
+            container.innerHTML = list.map(n => {
+                const created = new Date(n.createdAt).toLocaleDateString();
+                const sent = n.sentAt ? new Date(n.sentAt).toLocaleDateString() : null;
+                const statusColor = n.status === 'sent' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800';
+                const label = n.status === 'sent' ? 'Skickad' : 'Utkast';
+
+                return `
+                <div class="border border-gray-100 rounded-lg p-3 hover:bg-gray-50 transition-colors">
+                    <div class="flex justify-between items-start mb-1">
+                        <span class="text-xs font-semibold px-2 py-0.5 rounded-full ${statusColor}">${label}</span>
+                        <span class="text-xs text-gray-400">${sent || created}</span>
+                    </div>
+                    <h4 class="font-medium text-gray-800 text-sm mb-1 line-clamp-2">${n.subject}</h4>
+                    ${n.status === 'draft' ?
+                        `<button onclick="editNewsletter(${n.id})" class="text-xs text-blue-600 hover:text-blue-800 font-medium mt-1">Redigera</button>`
+                        : ''}
+                </div>`;
+            }).join('');
+        }
+
+        // Load on start
+        loadNewsletters();
+
+        function getFormData() {
+            return {
+                id: document.getElementById('newsletterId').value ? parseInt(document.getElementById('newsletterId').value) : 0,
+                subject: document.getElementById('subject').value,
+                content: quill.root.innerHTML,
+                filterCriteria: document.getElementById('filterCriteria').value
+            };
+        }
+
+        async function saveDraft() {
+            const data = getFormData();
+            if (!data.subject) return alert('Ange ett ämne');
+
+            const res = await fetch('/api/newsletters', {
+                method: 'POST',
+                body: JSON.stringify(data)
+            });
+            const result = await res.json();
+            if (result.success) {
+                alert('Utkast sparat!');
+                loadNewsletters();
+                if (data.id === 0) resetForm();
+            } else {
+                alert('Fel: ' + result.message);
+            }
+        }
+
+        async function sendNewsletter() {
+            if (!confirm('Är du säker på att du vill skicka detta till alla valda mottagare?')) return;
+
+            const data = getFormData();
+            if (!data.subject) return alert('Ange ett ämne');
+
+            const res = await fetch('/api/newsletters?action=send', {
+                method: 'POST',
+                body: JSON.stringify(data)
+            });
+            const result = await res.json();
+            if (result.success) {
+                alert('Nyhetsbrev skickat!');
+                resetForm();
+                loadNewsletters();
+            } else {
+                alert('Fel: ' + result.message);
+            }
+        }
+
+        function editNewsletter(id) {
+            // Need to fetch full content to edit, as the list might truncated or insufficient
+            // For now, simpler: we don't have a specific GET endpoint for one ID, but we have the list.
+            // Let's re-fetch list and find item (inefficient but works for small scale)
+            fetch('/api/newsletters').then(r => r.json()).then(list => {
+                const item = list.find(l => l.id === id);
+                if (item) {
+                    document.getElementById('newsletterId').value = item.id;
+                    document.getElementById('subject').value = item.subject;
+                    quill.root.innerHTML = item.content;
+                    // filterCriteria might be stored in JSON/Text but our simple backend stores it as string, hopefully matching values
+                    // If not stored properly, defaults to 'all'
+                    document.getElementById('filterCriteria').value = item.filterCriteria || 'all';
+
+                    // Scroll to top
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                }
+            });
+        }
+
+        function resetForm() {
+            document.getElementById('newsletterForm').reset();
+            quill.setContents([]);
+            document.getElementById('newsletterId').value = '';
+        }
+    </script>
+
+</body>
+
+</html>

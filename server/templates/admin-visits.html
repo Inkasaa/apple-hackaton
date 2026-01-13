@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="sv">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hantera Besök - Öfvergårds Admin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <!-- FullCalendar -->
+    <link href='https://cdn.jsdelivr.net/npm/fullcalendar@5.10.1/main.min.css' rel='stylesheet' />
+
+    <!-- Flatpickr -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+
+    <style>
+        /* Custom overrides for FullCalendar to look nicer with Tailwind */
+        .fc-toolbar-title {
+            font-size: 1.25rem !important;
+            font-weight: 600;
+            color: #1f2937;
+        }
+
+        .fc-button {
+            background-color: #3b82f6 !important;
+            border: none !important;
+        }
+
+        .fc-button:hover {
+            background-color: #2563eb !important;
+        }
+
+        .fc-button-active {
+            background-color: #1d4ed8 !important;
+        }
+
+        /* Tabs */
+        .tab-active {
+            border-bottom: 2px solid #166534;
+            color: #166534;
+            font-weight: 600;
+        }
+
+        .tab-inactive {
+            color: #6b7280;
+        }
+
+        .tab-inactive:hover {
+            color: #374151;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-50 min-h-screen font-sans">
+
+    <!-- Header -->
+    <nav class="bg-white shadow-sm border-b">
+        <div class="max-w-6xl mx-auto px-6 py-4 flex justify-between items-center">
+            <div class="flex items-center gap-6">
+                <div>
+                    <h1 class="text-xl font-bold text-green-800">🍎 Öfvergårds Admin</h1>
+                </div>
+                <!-- Mini Nav -->
+                <div class="hidden md:flex gap-4 text-sm">
+                    <a href="/admin" class="text-gray-500 hover:text-green-800">Dashboard</a>
+                    <a href="/admin/visits" class="font-semibold text-green-800">Besök</a>
+                    <a href="/admin/newsletters" class="text-gray-500 hover:text-green-800">Nyhetsbrev</a>
+                    <a href="/admin/trees" class="text-gray-500 hover:text-green-800">Adoptera Träd</a>
+                </div>
+            </div>
+            <div class="flex gap-4 items-center">
+                <a href="/" class="text-sm text-green-700 hover:underline">← Till Hemsidan</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="w-full px-8 py-6">
+        <div class="flex justify-between items-center mb-6 max-w-7xl mx-auto">
+            <h2 class="text-2xl font-bold text-gray-800">Hantera Besök</h2>
+        </div>
+
+        <!-- Tabs -->
+        <div class="flex border-b border-gray-200 mb-6 max-w-7xl mx-auto">
+            <button onclick="showTab('calendar')" id="btn-tab-calendar"
+                class="tab-active px-4 py-2 focus:outline-none transition-colors">
+                Kalender & Tider
+            </button>
+            <button onclick="showTab('inquiries')" id="btn-tab-inquiries"
+                class="tab-inactive px-4 py-2 focus:outline-none transition-colors">
+                Förfrågningar {{if .Inquiries}}<span
+                    class="ml-1 bg-yellow-100 text-yellow-800 text-xs px-2 py-0.5 rounded-full">{{len
+                    .Inquiries}}</span>{{end}}
+            </button>
+        </div>
+
+        <!-- Calendar Tab -->
+        <div id="tab-calendar" class="block">
+            <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                <!-- Create Slot Form -->
+                <div class="lg:col-span-1">
+                    <div class="bg-white rounded-xl shadow-sm border p-6">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">Skapa Ny Tid</h3>
+                        <form id="createSlotForm" class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Aktivitet</label>
+                                <select name="activity" id="slotActivity"
+                                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 border p-2">
+                                    <option value="safari">Äppelsafari</option>
+                                    <option value="tasting">Mustprovning</option>
+                                    <option value="picnic">Picknick</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Datum & Tid</label>
+                                <input type="text" id="slotStartTime" name="startTime" placeholder="Välj starttid..."
+                                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 border p-2">
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Kapacitet</label>
+                                <input type="number" name="capacity" id="slotCapacity" value="12"
+                                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 border p-2">
+                            </div>
+
+                            <div class="flex items-center">
+                                <input type="checkbox" id="isRecurring"
+                                    onchange="document.getElementById('recurringOptions').style.display=this.checked?'block':'none'"
+                                    class="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded">
+                                <label for="isRecurring" class="ml-2 block text-sm text-gray-900">Återkommande
+                                    tid?</label>
+                            </div>
+
+                            <div id="recurringOptions"
+                                class="hidden bg-gray-50 p-4 rounded-md border border-gray-200 space-y-3">
+                                <div>
+                                    <label class="block text-xs font-medium text-gray-500 uppercase">Upprepa i antal
+                                        veckor</label>
+                                    <input type="number" id="recurWeeks" value="4" min="1" max="52"
+                                        class="mt-1 w-full rounded-md border-gray-300 shadow-sm border p-2 text-sm">
+                                </div>
+                                <div>
+                                    <label
+                                        class="block text-xs font-medium text-gray-500 uppercase mb-1">Veckodagar</label>
+                                    <div class="flex flex-wrap gap-2 text-sm">
+                                        <label class="inline-flex items-center"><input type="checkbox" name="recurDay"
+                                                value="1" class="rounded text-green-600"> Mån</label>
+                                        <label class="inline-flex items-center"><input type="checkbox" name="recurDay"
+                                                value="2" class="rounded text-green-600"> Tis</label>
+                                        <label class="inline-flex items-center"><input type="checkbox" name="recurDay"
+                                                value="3" class="rounded text-green-600"> Ons</label>
+                                        <label class="inline-flex items-center"><input type="checkbox" name="recurDay"
+                                                value="4" class="rounded text-green-600"> Tor</label>
+                                        <label class="inline-flex items-center"><input type="checkbox" name="recurDay"
+                                                value="5" class="rounded text-green-600"> Fre</label>
+                                        <label class="inline-flex items-center"><input type="checkbox" name="recurDay"
+                                                value="6" class="rounded text-green-600"> Lör</label>
+                                        <label class="inline-flex items-center"><input type="checkbox" name="recurDay"
+                                                value="0" class="rounded text-green-600"> Sön</label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <button type="button" onclick="createSlot()"
+                                class="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors font-medium">Skapa
+                                Tid</button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Calendar View -->
+                <div class="lg:col-span-3">
+                    <div class="bg-white rounded-xl shadow-sm border p-6">
+                        <div id="calendar" style="min-height: 700px;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Inquiries Tab -->
+        <div id="tab-inquiries" class="hidden">
+            <div class="bg-white rounded-xl shadow-sm border overflow-hidden max-w-4xl mx-auto">
+                {{if .Inquiries}}
+                <div class="divide-y divide-gray-100">
+                    {{range .Inquiries}}
+                    <div class="p-6 hover:bg-gray-50">
+                        <div class="flex justify-between items-start mb-2">
+                            <div>
+                                <h3 class="font-semibold text-gray-900">{{.Activity}} <span
+                                        class="text-sm font-normal text-gray-500">önskat {{.ProposedDate}}</span></h3>
+                                <p class="text-sm text-gray-600">Från: <span class="font-medium">{{.Name}}</span>
+                                    ({{.Email}})</p>
+                                <p class="text-xs text-gray-400 mt-1">Mottagen: {{.CreatedAt}}</p>
+                            </div>
+                            <span
+                                class="px-2 py-1 text-xs rounded-full bg-yellow-100 text-yellow-800 font-medium capitalize">{{.Status}}</span>
+                        </div>
+
+                        <div class="bg-gray-50 p-3 rounded text-sm text-gray-700 mb-4 border border-gray-100 italic">
+                            "{{.Message}}"
+                        </div>
+
+                        <div class="flex gap-3">
+                            <button onclick="openAcceptModal({{.ID}}, '{{.Activity}}', '{{.ProposedDate}}')"
+                                class="text-sm bg-green-50 text-green-700 px-3 py-1.5 rounded border border-green-200 hover:bg-green-100 font-medium">
+                                Acceptera & Skapa Tid
+                            </button>
+                            <button onclick="declineInquiry({{.ID}})"
+                                class="text-sm bg-red-50 text-red-700 px-3 py-1.5 rounded border border-red-200 hover:bg-red-100 font-medium">
+                                Neka
+                            </button>
+                        </div>
+                    </div>
+                    {{end}}
+                </div>
+                {{else}}
+                <div class="p-12 text-center text-gray-500">
+                    <i class="fas fa-inbox text-4xl mb-3 text-gray-300"></i>
+                    <p>Inga väntande förfrågningar just nu.</p>
+                </div>
+                {{end}}
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Scripts -->
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@5.10.1/main.min.js'></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://npmcdn.com/flatpickr/dist/l10n/sv.js"></script>
+
+    <script>
+        // Tab styling & logic
+        function showTab(id) {
+            document.getElementById('tab-calendar').classList.add('hidden');
+            document.getElementById('tab-inquiries').classList.add('hidden');
+            document.getElementById('tab-' + id).classList.remove('hidden');
+
+            // Update buttons
+            document.getElementById('btn-tab-calendar').className = (id === 'calendar') ? 'tab-active px-4 py-2 focus:outline-none' : 'tab-inactive px-4 py-2 focus:outline-none';
+            document.getElementById('btn-tab-inquiries').className = (id === 'inquiries') ? 'tab-active px-4 py-2 focus:outline-none' : 'tab-inactive px-4 py-2 focus:outline-none';
+
+            if (id === 'calendar') setTimeout(() => calendar.render(), 10);
+        }
+
+        // Flatpickr
+        flatpickr("#slotStartTime", {
+            enableTime: true,
+            dateFormat: "Y-m-d H:i",
+            time_24hr: true,
+            locale: "sv",
+            minDate: "today"
+        });
+
+        // Calendar
+        var calendar;
+        document.addEventListener('DOMContentLoaded', function () {
+            var calendarEl = document.getElementById('calendar');
+            calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'dayGridMonth',
+                timeZone: 'UTC',
+                headerToolbar: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: ''
+                },
+                contentHeight: 700,
+                dayMaxEvents: 5,
+                locale: 'sv',
+                height: 'auto',
+                eventTimeFormat: {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    meridiem: false,
+                    hour12: false
+                },
+                events: function (info, successCallback, failureCallback) {
+                    fetch('/api/slots?activity=')
+                        .then(res => res.json())
+                        .then(data => {
+                            const events = data.map(slot => ({
+                                title: `${slot.activity} (${slot.booked}/${slot.capacity})`,
+                                start: slot.startTime,
+                                end: slot.endTime,
+                                color: getEventColor(slot.activity),
+                                extendedProps: slot
+                            }));
+                            successCallback(events);
+                        })
+                        .catch(err => failureCallback(err));
+                }
+            });
+            calendar.render();
+        });
+
+        function getEventColor(type) {
+            if (type === 'safari') return '#ef4444'; // red-500
+            if (type === 'tasting') return '#f59e0b'; // amber-500
+            if (type === 'picnic') return '#22c55e'; // green-500
+            return '#3b82f6'; // blue-500
+        }
+
+        // Create Slot
+        async function createSlot() {
+            const activity = document.getElementById('slotActivity').value;
+            const startTimeStr = document.getElementById('slotStartTime').value;
+            const capacity = parseInt(document.getElementById('slotCapacity').value);
+            const isRecurring = document.getElementById('isRecurring').checked;
+
+            if (!startTimeStr) return alert("Välj starttid!");
+
+            const startTime = new Date(startTimeStr).toISOString();
+
+            const data = {
+                activity,
+                startTime,
+                capacity,
+                durationMinutes: 90,
+                isRecurring,
+                recurWeeks: isRecurring ? parseInt(document.getElementById('recurWeeks').value) : 0,
+                recurDays: []
+            };
+
+            if (isRecurring) {
+                document.querySelectorAll('input[name="recurDay"]:checked').forEach(cb => {
+                    data.recurDays.push(parseInt(cb.value));
+                });
+            }
+
+            const res = await fetch('/api/slots', {
+                method: 'POST',
+                body: JSON.stringify(data)
+            });
+            const result = await res.json();
+
+            if (result.success) {
+                alert('Tid(er) skapades!');
+                calendar.refetchEvents();
+                document.getElementById('createSlotForm').reset();
+            } else {
+                alert('Fel: ' + (result.message || 'Okänt fel'));
+            }
+        }
+
+        // Inquiry Actions
+        async function declineInquiry(id) {
+            if (!confirm("Vill du neka denna förfrågan?")) return;
+            await postInquiryAction(id, 'decline');
+        }
+
+        async function openAcceptModal(id, activity, dateHint) {
+            let defaultDate = new Date().toISOString().slice(0, 16).replace('T', ' ');
+            if (dateHint) {
+                try {
+                    const d = new Date(dateHint);
+                    if (!isNaN(d.getTime())) {
+                        const pad = (n) => n < 10 ? '0' + n : n;
+                        defaultDate = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+                    }
+                } catch (e) { console.error("Could not parse dateHint", dateHint); }
+            }
+
+            const confirmedTime = prompt(`Skapa en tid för ${activity}.\nFöreslaget datum: ${dateHint}\n\nAnge datum och tid (YYYY-MM-DD HH:MM):`, defaultDate);
+            if (!confirmedTime) return;
+
+            const slotData = {
+                activity: activity.toLowerCase().includes('safari') ? 'safari' : (activity.toLowerCase().includes('provning') ? 'tasting' : 'picnic'),
+                startTime: confirmedTime,
+                capacity: 12
+            };
+            await postInquiryAction(id, 'accept', slotData);
+        }
+
+        async function postInquiryAction(id, action, slotData = null) {
+            const res = await fetch('/api/inquiries/action', {
+                method: 'POST',
+                body: JSON.stringify({ id, action, slotData })
+            });
+            const result = await res.json();
+            if (result.success) {
+                alert('Åtgärd utförd!');
+                location.reload();
+            } else {
+                alert('Fel vid åtgärd.');
+            }
+        }
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,202 @@
+{{define "content"}}
+<div class="min-h-screen bg-gray-100">
+    <!-- Header -->
+    <div class="text-white py-8" style="background-color: #4a6741;">
+        <div class="max-w-4xl mx-auto px-4">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-3xl font-bold">Edit Website Content</h1>
+                    <p class="text-green-100 mt-1">Update text on your public pages</p>
+                </div>
+                <div class="flex gap-4">
+                    <a href="/admin.html" class="bg-white/20 hover:bg-white/30 px-4 py-2 rounded-lg transition-colors">
+                        ← Back to Admin
+                    </a>
+                    <a href="/" target="_blank" class="bg-white/20 hover:bg-white/30 px-4 py-2 rounded-lg transition-colors">
+                        View Site →
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="max-w-4xl mx-auto px-4 py-8">
+        <!-- Info Banner -->
+        <div class="bg-green-50 border border-green-200 rounded-lg p-4 mb-8">
+            <div class="flex items-start gap-3">
+                <span class="text-2xl">💡</span>
+                <div>
+                    <p class="font-medium text-green-800">How it works</p>
+                    <p class="text-green-700 text-sm mt-1">
+                        Edit the text below and click "Save" to update your website. 
+                        Changes appear immediately when you refresh the public page.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Success Message (hidden by default) -->
+        <div id="successMessage" class="hidden bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
+            <div class="flex items-center gap-2">
+                <span class="text-green-600">✓</span>
+                <span class="text-green-800 font-medium">Content saved successfully!</span>
+            </div>
+        </div>
+
+        <!-- Content Sections -->
+        <div class="space-y-6">
+            <!-- Öfvergårds -->
+            <div class="bg-white rounded-xl shadow-sm border p-6">
+                <div class="flex items-center gap-2 mb-4">
+                    <span class="text-xl">🍎</span>
+                    <h2 class="text-lg font-semibold text-gray-800">Öfvergårds</h2>
+                </div>
+                <p class="text-gray-500 text-sm mb-3">The main message visitors see under the Öfvergårds title</p>
+                <textarea 
+                    id="hero_tagline" 
+                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent resize-y"
+                    rows="2"
+                >{{index .Content "hero_tagline"}}</textarea>
+                <div class="flex justify-between items-center mt-3">
+                    <span class="text-xs text-gray-400" id="hero_tagline_status"></span>
+                    <button onclick="saveContent('hero_tagline')" class="text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors" style="background-color: #4a6741;" onmouseover="this.style.backgroundColor='#3d5535'" onmouseout="this.style.backgroundColor='#4a6741'">
+                        Save
+                    </button>
+                </div>
+            </div>
+
+            <!-- Welcome to Our Farm -->
+            <div class="bg-white rounded-xl shadow-sm border p-6">
+                <div class="flex items-center gap-2 mb-4">
+            
+                    <h2 class="text-lg font-semibold text-gray-800">Welcome to Our Farm</h2>
+                </div>
+                <p class="text-gray-500 text-sm mb-3">Tell your story - who you are and what makes Öfvergårds special</p>
+                <textarea 
+                    id="about_text" 
+                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent resize-y"
+                    rows="5"
+                >{{index .Content "about_text"}}</textarea>
+                <div class="flex justify-between items-center mt-3">
+                    <span class="text-xs text-gray-400" id="about_text_status"></span>
+                    <button onclick="saveContent('about_text')" class="text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors" style="background-color: #4a6741;" onmouseover="this.style.backgroundColor='#3d5535'" onmouseout="this.style.backgroundColor='#4a6741'">
+                        Save
+                    </button>
+                </div>
+            </div>
+
+            <!-- Light in the Dark -->
+            <div class="bg-white rounded-xl shadow-sm border p-6">
+                <div class="flex items-center gap-2 mb-4">
+                    <span class="text-xl">🕯️</span>
+                    <h2 class="text-lg font-semibold text-gray-800">Light in the Dark</h2>
+                </div>
+                <p class="text-gray-500 text-sm mb-3">Describe your low-season offering and what makes it special</p>
+                <textarea 
+                    id="light_in_dark_text" 
+                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent resize-y"
+                    rows="5"
+                    data-key="light_in_dark_text"
+                >{{index .Content "light_in_dark_text"}}</textarea>
+                <div class="flex justify-between items-center mt-3">
+                    <span class="text-xs text-gray-400" id="light_in_dark_text_status"></span>
+                    <button onclick="saveContent('light_in_dark_text')" class="text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors" style="background-color: #4a6741;" onmouseover="this.style.backgroundColor='#3d5535'" onmouseout="this.style.backgroundColor='#4a6741'">
+                        Save
+                    </button>
+                </div>
+            </div>
+
+            <!-- Become Part of Our Story -->
+            <div class="bg-white rounded-xl shadow-sm border p-6">
+                <div class="flex items-center gap-2 mb-4">
+                    <span class="text-xl">🍎</span>
+                    <h2 class="text-lg font-semibold text-gray-800">Become Part of Our Story</h2>
+                </div>
+                <p class="text-gray-500 text-sm mb-3">The message encouraging visitors to adopt a tree</p>
+                <textarea 
+                    id="cta_text" 
+                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent resize-y"
+                    rows="3"
+                >{{index .Content "cta_text"}}</textarea>
+                <div class="flex justify-between items-center mt-3">
+                    <span class="text-xs text-gray-400" id="cta_text_status"></span>
+                    <button onclick="saveContent('cta_text')" class="text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors" style="background-color: #4a6741;" onmouseover="this.style.backgroundColor='#3d5535'" onmouseout="this.style.backgroundColor='#4a6741'">
+                        Save
+                    </button>
+                </div>
+            </div>
+
+            <!-- Nourished by Nature -->
+            <div class="bg-white rounded-xl shadow-sm border p-6">
+                <div class="flex items-center gap-2 mb-4">
+                    <span class="text-xl">🌿</span>
+                    <h2 class="text-lg font-semibold text-gray-800">Nourished by Nature</h2>
+                </div>
+                <p class="text-gray-500 text-sm mb-3">Describe this experience offering under "What We Offer"</p>
+                <textarea 
+                    id="experience_nourish" 
+                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent resize-y"
+                    rows="3"
+                >{{index .Content "experience_nourish"}}</textarea>
+                <div class="flex justify-between items-center mt-3">
+                    <span class="text-xs text-gray-400" id="experience_nourish_status"></span>
+                    <button onclick="saveContent('experience_nourish')" class="text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors" style="background-color: #4a6741;" onmouseover="this.style.backgroundColor='#3d5535'" onmouseout="this.style.backgroundColor='#4a6741'">
+                        Save
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Demo Notice -->
+        <div class="mt-8 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+            <div class="flex items-start gap-3">
+                
+                <div>
+                    <p class="font-medium text-yellow-800">Demo Mode</p>
+                    <p class="text-yellow-700 text-sm mt-1">
+                        This is a mock CMS for demonstration. In production, this would include:
+                        login authentication, revision history, and preview functionality.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+async function saveContent(key) {
+    const textarea = document.getElementById(key);
+    const statusEl = document.getElementById(key + '_status');
+    const value = textarea.value;
+
+    statusEl.textContent = 'Saving...';
+    statusEl.className = 'text-xs text-gray-500';
+
+    try {
+        const response = await fetch('/api/content', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ key, value })
+        });
+
+        if (response.ok) {
+            statusEl.textContent = '✓ Saved just now';
+            statusEl.className = 'text-xs text-green-600';
+            
+            // Show success message
+            const successMsg = document.getElementById('successMessage');
+            successMsg.classList.remove('hidden');
+            setTimeout(() => successMsg.classList.add('hidden'), 3000);
+            
+            console.log('Content updated:', key);
+        } else {
+            throw new Error('Save failed');
+        }
+    } catch (error) {
+        statusEl.textContent = '✗ Error saving';
+        statusEl.className = 'text-xs text-red-600';
+        console.error('Error:', error);
+    }
+}
+</script>
+{{end}}

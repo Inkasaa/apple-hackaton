@@ -1,38 +1,59 @@
 {{define "base"}}
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{.Title}} - Öfvergårds</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { 
-            background-color: #fdfbf7; 
+        body {
+            background-color: #fdfbf7;
             font-family: 'Georgia', serif;
         }
-        .font-sans { font-family: system-ui, -apple-system, sans-serif; }
-        .btn-primary { 
-            background-color: #4a6741; 
-            color: white; 
+
+        .font-sans {
+            font-family: system-ui, -apple-system, sans-serif;
         }
-        .btn-primary:hover { 
-            background-color: #3d5535; 
+
+        .btn-primary {
+            background-color: #4a6741;
+            color: white;
         }
+
+        .btn-primary:hover {
+            background-color: #3d5535;
+        }
+
         .btn-outline {
             border: 2px solid #4a6741;
             color: #4a6741;
         }
+
         .btn-outline:hover {
             background-color: #4a6741;
             color: white;
         }
-        .text-green-brand { color: #4a6741; }
-        .bg-green-brand { background-color: #4a6741; }
-        .bg-warm { background-color: #f9f6f1; }
-        .bg-warm-dark { background-color: #f0ebe3; }
+
+        .text-green-brand {
+            color: #4a6741;
+        }
+
+        .bg-green-brand {
+            background-color: #4a6741;
+        }
+
+        .bg-warm {
+            background-color: #f9f6f1;
+        }
+
+        .bg-warm-dark {
+            background-color: #f0ebe3;
+        }
     </style>
 </head>
+
 <body class="text-gray-800 min-h-screen flex flex-col">
     <!-- Navigation -->
     <nav class="bg-white/80 backdrop-blur-sm sticky top-0 z-50 border-b border-gray-100">
@@ -41,32 +62,45 @@
                 <a href="/" class="text-xl font-bold text-green-brand">
                     🍎 Öfvergårds
                 </a>
-                
+
                 <!-- Mobile menu button -->
                 <button id="menuBtn" class="md:hidden p-2 text-gray-600" onclick="toggleMenu()">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 6h16M4 12h16M4 18h16" />
                     </svg>
                 </button>
 
                 <!-- Desktop Navigation -->
                 <div class="hidden md:flex items-center gap-6">
-                    <a href="/" class="text-sm font-sans text-gray-600 hover:text-green-brand transition-colors">Home</a>
-                    <a href="/products" class="text-sm font-sans text-gray-600 hover:text-green-brand transition-colors">Products</a>
-                    <a href="/adopt" class="text-sm font-sans text-gray-600 hover:text-green-brand transition-colors">Adopt a Tree</a>
-                    <a href="/feedback/farmshop" class="text-sm font-sans text-gray-600 hover:text-green-brand transition-colors">Feedback</a>
-                    <a href="/admin.html" class="text-sm font-sans text-gray-400 hover:text-gray-600 transition-colors">Admin</a>
+                    <a href="/"
+                        class="text-sm font-sans text-gray-600 hover:text-green-brand hover:underline decoration-[#4a6741] decoration-[3px] underline-offset-[6px] transition-colors">Home</a>
+                    <a href="/products"
+                        class="text-sm font-sans text-gray-600 hover:text-green-brand hover:underline decoration-[#4a6741] decoration-[3px] underline-offset-[6px] transition-colors">Products</a>
+                    <a href="/adopt"
+                        class="text-sm font-sans text-gray-600 hover:text-green-brand hover:underline decoration-[#4a6741] decoration-[3px] underline-offset-[6px] transition-colors">Adopt
+                        a Tree</a>
+                    <a href="/feedback/farmshop"
+                        class="text-sm font-sans text-gray-600 hover:text-green-brand hover:underline decoration-[#4a6741] decoration-[3px] underline-offset-[6px] transition-colors">Feedback</a>
+                    <a href="/admin.html"
+                        class="text-sm font-sans text-gray-400 hover:text-gray-600 hover:underline underline-offset-4 transition-colors">Admin</a>
                 </div>
             </div>
 
             <!-- Mobile Navigation -->
             <div id="mobileMenu" class="hidden md:hidden pt-4 pb-2 border-t mt-4">
                 <div class="flex flex-col gap-3">
-                    <a href="/" class="text-sm font-sans text-gray-600 hover:text-green-brand">Home</a>
-                    <a href="/products" class="text-sm font-sans text-gray-600 hover:text-green-brand">Products</a>
-                    <a href="/adopt" class="text-sm font-sans text-gray-600 hover:text-green-brand">Adopt a Tree</a>
-                    <a href="/feedback/farmshop" class="text-sm font-sans text-gray-600 hover:text-green-brand">Feedback</a>
-                    <a href="/admin.html" class="text-sm font-sans text-gray-400 hover:text-gray-600">Admin</a>
+                    <a href="/"
+                        class="text-sm font-sans text-gray-600 hover:text-green-brand hover:underline decoration-[#4a6741] decoration-[3px] underline-offset-[6px]">Home</a>
+                    <a href="/products"
+                        class="text-sm font-sans text-gray-600 hover:text-green-brand hover:underline decoration-[#4a6741] decoration-[3px] underline-offset-[6px]">Products</a>
+                    <a href="/adopt"
+                        class="text-sm font-sans text-gray-600 hover:text-green-brand hover:underline decoration-[#4a6741] decoration-[3px] underline-offset-[6px]">Adopt
+                        a Tree</a>
+                    <a href="/feedback/farmshop"
+                        class="text-sm font-sans text-gray-600 hover:text-green-brand hover:underline decoration-[#4a6741] decoration-[3px] underline-offset-[6px]">Feedback</a>
+                    <a href="/admin.html"
+                        class="text-sm font-sans text-gray-400 hover:text-gray-600 hover:underline underline-offset-4">Admin</a>
                 </div>
             </div>
         </div>
@@ -97,5 +131,6 @@
         }
     </script>
 </body>
+
 </html>
 {{end}}

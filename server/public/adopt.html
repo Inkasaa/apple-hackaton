@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Adopt an Apple Tree - Öfvergårds</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background-color: #fdfbf7;
+            font-family: 'Georgia', serif;
+        }
+
+        .font-sans {
+            font-family: system-ui, -apple-system, sans-serif;
+        }
+
+        .btn-primary {
+            background-color: #4a6741;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: #3d5535;
+        }
+
+        .btn-outline {
+            border: 2px solid #4a6741;
+            color: #4a6741;
+        }
+
+        .btn-outline:hover {
+            background-color: #4a6741;
+            color: white;
+        }
+
+        .text-green-brand {
+            color: #4a6741;
+        }
+
+        .bg-green-brand {
+            background-color: #4a6741;
+        }
+
+        .bg-warm {
+            background-color: #f9f6f1;
+        }
+
+        .bg-warm-dark {
+            background-color: #f0ebe3;
+        }
+    </style>
+</head>
+
+<body class="text-gray-800 min-h-screen flex flex-col">
+    <!-- Navigation -->
+    <nav id="simpleHeader" class="bg-white/80 backdrop-blur-sm sticky top-0 z-50 border-b border-gray-100">
+        <div class="max-w-5xl mx-auto px-6 py-4">
+            <div class="flex justify-between items-center">
+                <a href="/" class="text-xl font-bold text-green-brand">
+                    🍎 Öfvergårds
+                </a>
+
+                <!-- Mobile menu button -->
+                <button id="menuBtn" class="md:hidden p-2 text-gray-600" onclick="toggleMenu()">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 6h16M4 12h16M4 18h16" />
+                    </svg>
+                </button>
+
+                <!-- Desktop Navigation -->
+                <div class="hidden md:flex items-center gap-6">
+                    <a href="/"
+                        class="text-sm font-sans text-gray-600 hover:text-green-brand transition-colors">Home</a>
+                </div>
+            </div>
+
+            <!-- Mobile Navigation -->
+            <div id="mobileMenu" class="hidden md:hidden pt-4 pb-2 border-t mt-4">
+                <div class="flex flex-col gap-3">
+                    <a href="/" class="text-sm font-sans text-gray-600 hover:text-green-brand">Home</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Navigation: Original Mode (Replica) -->
+    <nav id="originalHeader" class="hidden sticky top-0 z-50"
+        style="background-color: #751C1E; font-family: system-ui, sans-serif;">
+        <div class="max-w-6xl mx-auto px-4 py-4">
+            <div class="flex flex-col md:flex-row items-center justify-between gap-4">
+                <!-- Logo -->
+                <div class="flex-shrink-0">
+                    <a href="/">
+                        <img src="https://i0.wp.com/ofvergards.ax/wp-content/uploads/2020/08/%C3%96fverg%C3%A5rds_logo.png?fit=557%2C600&ssl=1"
+                            alt="Öfvergårds" class="h-16 w-auto">
+                    </a>
+                </div>
+
+                <!-- Desktop Links (Mirrored) -->
+                <div
+                    class="hidden md:flex flex-wrap justify-center gap-6 text-sm uppercase font-bold tracking-wide text-white">
+                    <a href="/"
+                        class="hover:text-gray-200 hover:underline decoration-[#D85F31] decoration-[3px] underline-offset-[6px] transition-colors">Start</a>
+                    <a href="/om-oss/"
+                        class="hover:text-gray-200 hover:underline decoration-[#D85F31] decoration-[3px] underline-offset-[6px] transition-colors">Om
+                        oss</a>
+                    <a href="/gardsbesok/"
+                        class="hover:text-gray-200 hover:underline decoration-[#D85F31] decoration-[3px] underline-offset-[6px] transition-colors">Gårdsbesök</a>
+                    <a href="/vara-produkter/"
+                        class="hover:text-gray-200 hover:underline decoration-[#D85F31] decoration-[3px] underline-offset-[6px] transition-colors">Våra
+                        produkter</a>
+                    <a href="/mitt-appeltrad/index.html"
+                        class="hover:text-gray-200 hover:underline decoration-[#D85F31] decoration-[3px] underline-offset-[6px] transition-colors">Mitt
+                        äppelträd</a>
+                    <a href="/kontakta-oss/"
+                        class="hover:text-gray-200 hover:underline decoration-[#D85F31] decoration-[3px] underline-offset-[6px] transition-colors">Kontakta
+                        oss</a>
+                </div>
+                <div class="md:hidden text-white text-xs uppercase tracking-widest">
+                    MENU
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="flex-1">
+        <div class="max-w-xl mx-auto p-6">
+            <!-- Progress Steps -->
+            <div class="flex items-center justify-center mb-8 mt-4">
+                <div class="flex items-center">
+                    <div
+                        class="w-8 h-8 bg-green-600 text-white rounded-full flex items-center justify-center text-sm font-bold font-sans">
+                        1</div>
+                    <span class="ml-2 text-sm text-green-700 font-medium font-sans">Sign Up</span>
+                </div>
+                <div class="w-12 h-1 bg-gray-300 mx-2"></div>
+                <div class="flex items-center">
+                    <div
+                        class="w-8 h-8 bg-gray-300 text-gray-500 rounded-full flex items-center justify-center text-sm font-bold font-sans">
+                        2</div>
+                    <span class="ml-2 text-sm text-gray-500 font-sans">Payment</span>
+                </div>
+                <div class="w-12 h-1 bg-gray-300 mx-2"></div>
+                <div class="flex items-center">
+                    <div
+                        class="w-8 h-8 bg-gray-300 text-gray-500 rounded-full flex items-center justify-center text-sm font-bold font-sans">
+                        3</div>
+                    <span class="ml-2 text-sm text-gray-500 font-sans">Complete</span>
+                </div>
+            </div>
+
+            <header class="mb-8 text-center">
+                <h1 class="text-3xl md:text-4xl font-bold text-green-brand mb-2">Adopt an Apple Tree</h1>
+                <p class="text-lg text-gray-600">Become a part of our orchard in Åland.</p>
+            </header>
+
+            <!-- Info Box -->
+            <div class="bg-warm rounded-lg p-4 mb-6 text-sm text-gray-600">
+                <p class="mb-2">
+                    <strong class="text-green-brand">What you get:</strong>
+                </p>
+                <ul class="list-disc list-inside space-y-1 text-gray-500">
+                    <li>Your own apple tree in our orchard</li>
+                    <li>Seasonal updates about your tree</li>
+                    <li>First pick when harvest comes</li>
+                    <li>Part of our farm family newsletter</li>
+                </ul>
+            </div>
+
+            <form id="adoptForm" class="bg-white p-8 rounded-xl shadow-sm border border-gray-100">
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium mb-1 font-sans">Your Name</label>
+                        <input type="text" id="name" required
+                            class="w-full border p-3 rounded-lg focus:ring-2 focus:ring-green-200 outline-none font-sans"
+                            placeholder="Anna Lindberg">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1 font-sans">Email Address</label>
+                        <input type="email" id="email" required
+                            class="w-full border p-3 rounded-lg focus:ring-2 focus:ring-green-200 outline-none font-sans"
+                            placeholder="anna@example.com">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1 font-sans">Phone Number</label>
+                        <input type="tel" id="phone"
+                            class="w-full border p-3 rounded-lg focus:ring-2 focus:ring-green-200 outline-none font-sans"
+                            placeholder="+358 40 1234567">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1 font-sans">Country (Optional)</label>
+                        <select id="country"
+                            class="w-full border p-3 rounded-lg focus:ring-2 focus:ring-green-200 outline-none font-sans bg-white">
+                            <option value="" disabled selected>Select a country</option>
+                            <option value="Åland">Åland</option>
+                            <option value="Finland">Finland</option>
+                            <option value="Sweden">Sweden</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1 font-sans">Select Tree Variety</label>
+                        <select id="treeType"
+                            class="w-full border p-3 rounded-lg focus:ring-2 focus:ring-green-200 outline-none font-sans bg-white">
+                            <option value="Amorosa">Amorosa</option>
+                            <option value="Discovery">Discovery</option>
+                            <option value="Rubinola">Rubinola</option>
+                            <option value="Santana">Santana</option>
+                            <option value="Zari">Zari</option>
+                            <option value="Zonga">Zonga</option>
+                        </select>
+                    </div>
+
+                    <!-- Added Backend Fields -->
+                    <div>
+                        <label class="block text-sm font-medium mb-1 font-sans">Duration (Years)</label>
+                        <select id="years" onchange="updatePrice()"
+                            class="w-full border p-3 rounded-lg focus:ring-2 focus:ring-green-200 outline-none font-sans bg-white">
+                            <option value="1">1 Year (Standard)</option>
+                            <option value="2">2 Years (Save 10%)</option>
+                            <option value="3">3 Years (Save 15%)</option>
+                            <option value="4">4 Years (Save 15%)</option>
+                            <option value="5">5 Years (Save 15%)</option>
+                        </select>
+                        <p class="text-xs text-green-600 mt-1 font-sans">💡 <strong>Tip:</strong> Adopt for longer and
+                            save! 10% off for 2 years, 15% off for 3+ years.</p>
+                    </div>
+
+                    <div class="flex items-center gap-2 py-2">
+                        <input type="checkbox" id="isGift"
+                            class="w-5 h-5 text-green-brand rounded focus:ring-green-500">
+                        <label for="isGift" class="text-sm font-medium font-sans">This is a gift</label>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium mb-1 font-sans">Promo Code or Gift Certificate</label>
+                        <div class="flex gap-2">
+                            <input type="text" id="promoCode" placeholder="Optional"
+                                class="flex-1 border p-3 rounded-lg focus:ring-2 focus:ring-green-200 outline-none font-sans">
+                            <button type="button" onclick="checkPromo()"
+                                class="px-4 py-2 bg-gray-100 border border-gray-300 rounded hover:bg-gray-200 transition-colors text-sm font-medium font-sans">Apply</button>
+                        </div>
+                        <p id="promoMessage" class="text-xs mt-1 min-h-[1.25em] font-sans"></p>
+                    </div>
+
+                    <!-- Price Display -->
+                    <div class="bg-green-50 p-4 rounded-lg border border-green-100">
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-700 font-sans">Annual adoption fee</span>
+                            <span class="text-xl font-bold text-green-brand font-sans">€60</span>
+                        </div>
+                        <p class="text-xs text-gray-500 mt-1 font-sans">One-time payment for the year</p>
+                    </div>
+
+                    <div class="pt-2">
+                        <button type="submit" id="submitBtn"
+                            class="w-full btn-primary py-4 rounded-lg font-semibold transition-all shadow-md text-lg font-sans">
+                            Continue to Payment →
+                        </button>
+                    </div>
+                </div>
+            </form>
+
+            <!-- Demo Notice -->
+            <div class="mt-6 bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-sm text-yellow-800 font-sans">
+                <strong>Demo Mode:</strong> This is a mock application. No real payments will be processed.
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-warm-dark border-t border-gray-200 mt-16">
+        <div class="max-w-5xl mx-auto px-6 py-12">
+            <div class="text-center">
+                <p class="text-green-brand font-bold text-lg mb-2">Öfvergårds</p>
+                <p class="text-sm text-gray-500 font-sans">Åland archipelago, Finland</p>
+                <p class="text-xs text-gray-400 font-sans mt-4">
+                    A small family farm sharing nature, apples, and quiet moments.
+                </p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        function toggleMenu() {
+            const menu = document.getElementById('mobileMenu');
+            menu.classList.toggle('hidden');
+        }
+
+        // Header Switch Logic
+        function toggleHeaderMode() {
+            const simpleHeader = document.getElementById('simpleHeader');
+            const originalHeader = document.getElementById('originalHeader');
+
+            if (simpleHeader.classList.contains('hidden')) {
+                // Switch to Simple
+                simpleHeader.classList.remove('hidden');
+                originalHeader.classList.add('hidden');
+                localStorage.setItem('headerMode', 'simple');
+            } else {
+                // Switch to Original
+                simpleHeader.classList.add('hidden');
+                originalHeader.classList.remove('hidden');
+                localStorage.setItem('headerMode', 'original');
+            }
+        }
+
+        // Init Header Mode
+        document.addEventListener('DOMContentLoaded', () => {
+            const mode = localStorage.getItem('headerMode');
+            if (mode === 'original') {
+                document.getElementById('simpleHeader').classList.add('hidden');
+                document.getElementById('originalHeader').classList.remove('hidden');
+            }
+            populateCountries('country'); // Populate adopt form country list
+        });
+
+        const allCountries = [
+            "Afghanistan", "Albania", "Algeria", "Andorra", "Angola", "Antigua and Barbuda", "Argentina", "Armenia", "Australia", "Austria", "Azerbaijan",
+            "Bahamas", "Bahrain", "Bangladesh", "Barbados", "Belarus", "Belgium", "Belize", "Benin", "Bhutan", "Bolivia", "Bosnia and Herzegovina", "Botswana", "Brazil", "Brunei", "Bulgaria", "Burkina Faso", "Burundi",
+            "Cabo Verde", "Cambodia", "Cameroon", "Canada", "Central African Republic", "Chad", "Chile", "China", "Colombia", "Comoros", "Congo (Crazzaville)", "Congo (Kinshasa)", "Costa Rica", "Cote d'Ivoire", "Croatia", "Cuba", "Cyprus", "Czechia",
+            "Denmark", "Djibouti", "Dominica", "Dominican Republic",
+            "Ecuador", "Egypt", "El Salvador", "Equatorial Guinea", "Eritrea", "Estonia", "Eswatini", "Ethiopia",
+            "Fiji", "France",
+            "Gabon", "Gambia", "Georgia", "Germany", "Ghana", "Greece", "Grenada", "Guatemala", "Guinea", "Guinea-Bissau", "Guyana",
+            "Haiti", "Honduras", "Hungary",
+            "Iceland", "India", "Indonesia", "Iran", "Iraq", "Ireland", "Israel", "Italy",
+            "Jamaica", "Japan", "Jordan",
+            "Kazakhstan", "Kenya", "Kiribati", "Kosovo", "Kuwait", "Kyrgyzstan",
+            "Laos", "Latvia", "Lebanon", "Lesotho", "Liberia", "Libya", "Liechtenstein", "Lithuania", "Luxembourg",
+            "Madagascar", "Malawi", "Malaysia", "Maldives", "Mali", "Malta", "Marshall Islands", "Mauritania", "Mauritius", "Mexico", "Micronesia", "Moldova", "Monaco", "Mongolia", "Montenegro", "Morocco", "Mozambique", "Myanmar",
+            "Namibia", "Nauru", "Nepal", "Netherlands", "New Zealand", "Nicaragua", "Niger", "Nigeria", "North Korea", "North Macedonia", "Norway",
+            "Oman",
+            "Pakistan", "Palau", "Palestine State", "Panama", "Papua New Guinea", "Paraguay", "Peru", "Philippines", "Poland", "Portugal",
+            "Qatar",
+            "Romania", "Russia", "Rwanda",
+            "Saint Kitts and Nevis", "Saint Lucia", "Saint Vincent and the Grenadines", "Samoa", "San Marino", "Sao Tome and Principe", "Saudi Arabia", "Senegal", "Serbia", "Seychelles", "Sierra Leone", "Singapore", "Slovakia", "Slovenia", "Solomon Islands", "Somalia", "South Africa", "South Korea", "South Sudan", "Spain", "Sri Lanka", "Sudan", "Suriname", "Switzerland", "Syria",
+            "Taiwan", "Tajikistan", "Tanzania", "Thailand", "Timor-Leste", "Togo", "Tonga", "Trinidad and Tobago", "Tunisia", "Turkey", "Turkmenistan", "Tuvalu",
+            "Uganda", "Ukraine", "United Arab Emirates", "United Kingdom", "United States of America", "Uruguay", "Uzbekistan",
+            "Vanuatu", "Venezuela", "Vietnam",
+            "Yemen",
+            "Zambia", "Zimbabwe"
+        ];
+
+        function populateCountries(selectId) {
+            const select = document.getElementById(selectId);
+            if (!select) return;
+
+            // Keep existing priority options (first 4: disabled prop, Åland, Finland, Sweden)
+            // We assume the HTML structure has these first. 
+            // We'll append a separator and then the rest.
+
+            const separator = document.createElement('option');
+            separator.disabled = true;
+            separator.textContent = "-----------------";
+            select.appendChild(separator);
+
+            allCountries.forEach(country => {
+                // Skip if already in priority list to avoid dups (simple check)
+                if (['Finland', 'Sweden'].includes(country)) return;
+                // Åland is not in standard lists usually, so safe.
+
+                const option = document.createElement('option');
+                option.value = country;
+                option.textContent = country;
+                select.appendChild(option);
+            });
+        }
+    </script>
+    <!-- Header Switcher Toggle -->
+    <button id="headerToggleBtn" onclick="toggleHeaderMode()"
+        class="fixed bottom-4 right-4 bg-white border border-gray-200 shadow-lg p-3 rounded-full text-xs text-gray-500 hover:bg-gray-50 z-50 pointer-events-auto transition-transform hover:scale-110"
+        title="Switch Style">
+        🔄
+    </button>
+    <script src="js/booking.js"></script>
+</body>
+
+</html>

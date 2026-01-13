@@ -1,0 +1,88 @@
+{{define "content"}}
+<!-- Hero Section -->
+<section class="bg-warm py-16 md:py-24">
+    <div class="max-w-4xl mx-auto px-6 text-center">
+        <h1 class="text-4xl md:text-5xl lg:text-6xl font-bold text-green-brand mb-6">
+            Öfvergårds
+        </h1>
+        <p class="text-xl md:text-2xl text-gray-600 mb-8 max-w-2xl mx-auto leading-relaxed">
+            {{.HeroTagline}}
+        </p>
+        <a href="/products" class="inline-block btn-primary px-8 py-4 rounded-lg font-sans font-semibold text-lg shadow-md hover:shadow-lg transition-all">
+            🍎 Our Products
+        </a>
+    </div>
+</section>
+
+<!-- About Section -->
+<section class="py-16 md:py-20">
+    <div class="max-w-3xl mx-auto px-6">
+        <h2 class="text-2xl md:text-3xl font-bold text-green-brand mb-6 text-center">
+            Welcome to Our Farm
+        </h2>
+        <div class="prose prose-lg text-gray-600 text-center leading-relaxed">
+            {{range $i, $p := split .AboutText "\n\n"}}
+            <p class="mb-4">{{$p}}</p>
+            {{end}}
+        </div>
+    </div>
+</section>
+
+<!-- Light in the Dark Section -->
+<section class="bg-warm-dark py-16 md:py-20">
+    <div class="max-w-3xl mx-auto px-6">
+        <div class="text-center mb-8">
+            <span class="text-4xl mb-4 block">🕯️</span>
+            <h2 class="text-2xl md:text-3xl font-bold text-green-brand mb-4">
+                Light in the Dark
+            </h2>
+        </div>
+        <div class="text-gray-600 text-center leading-relaxed">
+            {{range $i, $p := split .LightInDarkText "\n\n"}}
+            <p class="mb-4">{{$p}}</p>
+            {{end}}
+            <p class="text-sm text-gray-500 italic">
+                Small groups. Meaningful moments. Sustainable tourism.
+            </p>
+        </div>
+    </div>
+</section>
+
+<!-- Experiences Section -->
+<section class="py-16 md:py-20">
+    <div class="max-w-4xl mx-auto px-6">
+        <h2 class="text-2xl md:text-3xl font-bold text-green-brand mb-12 text-center">
+            What We Offer
+        </h2>
+        
+        <div class="max-w-md mx-auto">
+            <!-- Experience 1 -->
+            <div class="bg-white p-8 rounded-xl shadow-sm border border-gray-100 text-center">
+                <span class="text-4xl mb-4 block">🌿</span>
+                <h3 class="text-lg font-bold text-green-brand mb-3 font-sans">
+                    Nourished by Nature
+                </h3>
+                <p class="text-gray-600 text-sm leading-relaxed">
+                    {{.ExperienceNourish}}
+                </p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Call to Action Section -->
+<section class="bg-green-brand py-16 md:py-20">
+    <div class="max-w-3xl mx-auto px-6 text-center">
+        <span class="text-5xl mb-6 block">🍎</span>
+        <h2 class="text-2xl md:text-3xl font-bold text-white mb-4">
+            Become Part of Our Story
+        </h2>
+        <p class="text-green-100 mb-8 text-lg leading-relaxed max-w-xl mx-auto">
+            {{.CtaText}}
+        </p>
+        <a href="/adopt" class="inline-block bg-white text-green-brand px-8 py-4 rounded-lg font-sans font-semibold text-lg shadow-md hover:shadow-lg hover:bg-gray-50 transition-all">
+            Adopt an Apple Tree →
+        </a>
+    </div>
+</section>
+{{end}}
