@@ -115,6 +115,25 @@
                 Each step happens automatically after payment. In production, these would trigger real emails via SendGrid/Mailchimp and update a CRM.
             </p>
         </div>
+
+        <!-- Data Export Section -->
+        <div class="mt-6 bg-white rounded-xl shadow-sm border p-6">
+            <h3 class="font-semibold text-gray-800 mb-2">📥 Export Your Data</h3>
+            <p class="text-sm text-gray-500 mb-4">
+                You always own your data. Download it anytime as CSV files for backup or use in other tools.
+            </p>
+            <div class="flex flex-wrap gap-3">
+                <a href="/api/export/customers" class="inline-flex items-center gap-2 bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg text-sm transition-colors">
+                    📋 Export Customers
+                </a>
+                <a href="/api/export/feedback" class="inline-flex items-center gap-2 bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg text-sm transition-colors">
+                    💬 Export Feedback
+                </a>
+                <a href="/api/export/activity" class="inline-flex items-center gap-2 bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg text-sm transition-colors">
+                    📜 Export Activity Log
+                </a>
+            </div>
+        </div>
     </main>
 
     <script>

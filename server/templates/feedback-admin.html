@@ -18,6 +18,14 @@
     </div>
 
     <div class="max-w-6xl mx-auto px-4 py-8">
+        <!-- Demo Notice -->
+        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+            <p class="text-sm text-yellow-800">
+                <strong>📋 Demo Data:</strong> This dashboard shows feedback collected through the survey forms. 
+                Data is stored locally and can be exported as CSV anytime.
+            </p>
+        </div>
+
         <!-- Stats Cards -->
         <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
             <!-- Farm Shop Responses -->
@@ -170,10 +178,21 @@
             {{end}}
         </div>
 
-        <!-- Demo Notice -->
-        <div class="mt-8 p-4 bg-blue-50 border border-blue-200 rounded-lg text-center">
-            <p class="text-blue-700 text-sm">
-                 <strong>Demo Mode:</strong> This dashboard shows mock feedback data. In production, this would include advanced analytics, export options, and automated alerts for low ratings.
+        <!-- Export Section -->
+        <div class="mt-8 bg-white rounded-xl shadow-lg p-6">
+            <h2 class="text-xl font-bold text-gray-800 mb-2">📥 Export Feedback Data</h2>
+            <p class="text-gray-600 mb-4 text-sm">Download all feedback as a CSV file for analysis in Excel, Google Sheets, or other tools.</p>
+            <a href="/api/export/feedback" class="inline-flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm transition-colors">
+                Download Feedback CSV
+            </a>
+        </div>
+
+        <!-- Info Notice -->
+        <div class="mt-6 p-4 bg-gray-50 border border-gray-200 rounded-lg">
+            <p class="text-gray-600 text-sm">
+                <strong>💡 Tip:</strong> Feedback is read-only in this dashboard. 
+                Data cannot be edited or deleted to ensure integrity. 
+                You can always export a full copy of your data.
             </p>
         </div>
     </div>

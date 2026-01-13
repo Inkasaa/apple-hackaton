@@ -31,7 +31,9 @@ open http://localhost:8080
 | URL | Description |
 |-----|-------------|
 | `/` | **Front page** - Company introduction, values, experiences |
+| `/products` | **Products** - Apple juice varieties |
 | `/adopt` | **Adopt a Tree** - Sign-up form for tree adoption |
+| `/my-tree` | **Newsletter** - Orchard updates for adopters |
 | `/payment.html` | Mock payment screen |
 | `/success.html` | Confirmation & welcome |
 | `/admin.html` | Admin dashboard |
@@ -86,12 +88,17 @@ The front page communicates:
 ```
 ├── server/
 │   ├── main.go          # API endpoints & business logic
+│   ├── config.json      # Feature toggles & defaults
 │   ├── templates/       # Go HTML templates
 │   │   ├── base.html    # Layout (nav, footer)
-│   │   ├── frontpage.html # Front page content
-│   │   └── adopt.html   # Adopt page content
+│   │   ├── frontpage.html
+│   │   ├── adopt.html
+│   │   ├── products.html
+│   │   ├── my-tree.html # Newsletter page
+│   │   ├── feedback-*.html
+│   │   └── *-admin.html
 │   ├── database.sqlite  # Created automatically
-│   └── .env             # Configuration (optional)
+│   └── .env             # Environment config (optional)
 │
 ├── client/
 │   ├── app.js           # Form handling JS
@@ -118,6 +125,61 @@ The front page communicates:
 | PUT | `/api/content` | Update content field |
 | POST | `/api/feedback` | Submit feedback survey |
 | GET | `/api/feedback/stats` | Get feedback statistics |
+| GET | `/api/config` | Get current configuration |
+| GET | `/api/export/customers` | Download customers as CSV |
+| GET | `/api/export/feedback` | Download feedback as CSV |
+| GET | `/api/export/activity` | Download activity log as CSV |
+
+## 🔧 Configuration
+
+Settings are stored in `server/config.json`:
+
+```json
+{
+  "features": {
+    "surveys_enabled": true,
+    "adoptions_enabled": true,
+    "newsletter_enabled": true
+  },
+  "defaults": {
+    "adoption_price_eur": 50,
+    "tree_types": ["Amorosa", "Discovery", "Collina"]
+  },
+  "automation": {
+    "webhook_on_adoption": "",
+    "webhook_on_feedback": "",
+    "webhook_on_payment": ""
+  }
+}
+```
+
+Edit this file to change defaults without modifying code.
+
+## 🤖 Automation Hooks (Future n8n Integration)
+
+The system has named hook functions that fire on key events:
+
+| Hook | When it fires |
+|------|---------------|
+| `onAdoptionStarted` | Customer submits adoption form |
+| `onPaymentCompleted` | Payment is confirmed (mock) |
+| `onEmailSent` | Confirmation email is "sent" |
+| `onNewsletterSubscribed` | Customer joins newsletter |
+| `onFeedbackSubmitted` | Feedback survey is submitted |
+
+**Current behavior:** Logs to activity log and console.
+
+**Future:** Can POST to webhook URLs (e.g., n8n) by setting URLs in `config.json`.
+
+## 📥 Data Export
+
+All data can be exported as CSV for backup or use in other tools:
+
+- `/api/export/customers` - Customer list with status
+- `/api/export/feedback` - All feedback responses
+- `/api/export/activity` - Complete automation log
+
+Links are available in the Admin Dashboard.
 
 ## ✏️ Content Management (Mock CMS)
 
