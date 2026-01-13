@@ -66,7 +66,7 @@
         .slot-card.selected {
             border-color: #4a6741;
             background-color: #dcfce7;
-            ring: 2px solid #4a6741;
+            box-shadow: 0 0 0 2px #4a6741;
         }
     </style>
     <!-- Flatpickr -->
@@ -259,6 +259,25 @@
                             class="w-full border p-3 rounded-lg focus:ring-2 focus:ring-green-200 outline-none font-sans">
                     </div>
 
+                    <div>
+                        <label class="block text-sm font-medium mb-1 font-sans">Phone Number</label>
+                        <input type="tel" id="visitPhone"
+                            class="w-full border p-3 rounded-lg focus:ring-2 focus:ring-green-200 outline-none font-sans"
+                            placeholder="+358 40 1234567">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium mb-1 font-sans">Country (Optional)</label>
+                        <select id="visitCountry"
+                            class="w-full border p-3 rounded-lg focus:ring-2 focus:ring-green-200 outline-none font-sans bg-white">
+                            <option value="" disabled selected>Select a country</option>
+                            <option value="Åland">Åland</option>
+                            <option value="Finland">Finland</option>
+                            <option value="Sweden">Sweden</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+
                     <div class="pt-4">
                         <button type="submit" id="bookVisitBtn"
                             class="w-full btn-primary py-4 rounded-lg font-semibold transition-all shadow-md text-lg font-sans">
@@ -367,7 +386,60 @@
                 document.getElementById('simpleHeader').classList.add('hidden');
                 document.getElementById('originalHeader').classList.remove('hidden');
             }
+            populateCountries('visitCountry'); // Populate visit form country list
         });
+
+        const allCountries = [
+            "Afghanistan", "Albania", "Algeria", "Andorra", "Angola", "Antigua and Barbuda", "Argentina", "Armenia", "Australia", "Austria", "Azerbaijan",
+            "Bahamas", "Bahrain", "Bangladesh", "Barbados", "Belarus", "Belgium", "Belize", "Benin", "Bhutan", "Bolivia", "Bosnia and Herzegovina", "Botswana", "Brazil", "Brunei", "Bulgaria", "Burkina Faso", "Burundi",
+            "Cabo Verde", "Cambodia", "Cameroon", "Canada", "Central African Republic", "Chad", "Chile", "China", "Colombia", "Comoros", "Congo (Crazzaville)", "Congo (Kinshasa)", "Costa Rica", "Cote d'Ivoire", "Croatia", "Cuba", "Cyprus", "Czechia",
+            "Denmark", "Djibouti", "Dominica", "Dominican Republic",
+            "Ecuador", "Egypt", "El Salvador", "Equatorial Guinea", "Eritrea", "Estonia", "Eswatini", "Ethiopia",
+            "Fiji", "France",
+            "Gabon", "Gambia", "Georgia", "Germany", "Ghana", "Greece", "Grenada", "Guatemala", "Guinea", "Guinea-Bissau", "Guyana",
+            "Haiti", "Honduras", "Hungary",
+            "Iceland", "India", "Indonesia", "Iran", "Iraq", "Ireland", "Israel", "Italy",
+            "Jamaica", "Japan", "Jordan",
+            "Kazakhstan", "Kenya", "Kiribati", "Kosovo", "Kuwait", "Kyrgyzstan",
+            "Laos", "Latvia", "Lebanon", "Lesotho", "Liberia", "Libya", "Liechtenstein", "Lithuania", "Luxembourg",
+            "Madagascar", "Malawi", "Malaysia", "Maldives", "Mali", "Malta", "Marshall Islands", "Mauritania", "Mauritius", "Mexico", "Micronesia", "Moldova", "Monaco", "Mongolia", "Montenegro", "Morocco", "Mozambique", "Myanmar",
+            "Namibia", "Nauru", "Nepal", "Netherlands", "New Zealand", "Nicaragua", "Niger", "Nigeria", "North Korea", "North Macedonia", "Norway",
+            "Oman",
+            "Pakistan", "Palau", "Palestine State", "Panama", "Papua New Guinea", "Paraguay", "Peru", "Philippines", "Poland", "Portugal",
+            "Qatar",
+            "Romania", "Russia", "Rwanda",
+            "Saint Kitts and Nevis", "Saint Lucia", "Saint Vincent and the Grenadines", "Samoa", "San Marino", "Sao Tome and Principe", "Saudi Arabia", "Senegal", "Serbia", "Seychelles", "Sierra Leone", "Singapore", "Slovakia", "Slovenia", "Solomon Islands", "Somalia", "South Africa", "South Korea", "South Sudan", "Spain", "Sri Lanka", "Sudan", "Suriname", "Switzerland", "Syria",
+            "Taiwan", "Tajikistan", "Tanzania", "Thailand", "Timor-Leste", "Togo", "Tonga", "Trinidad and Tobago", "Tunisia", "Turkey", "Turkmenistan", "Tuvalu",
+            "Uganda", "Ukraine", "United Arab Emirates", "United Kingdom", "United States of America", "Uruguay", "Uzbekistan",
+            "Vanuatu", "Venezuela", "Vietnam",
+            "Yemen",
+            "Zambia", "Zimbabwe"
+        ];
+
+        function populateCountries(selectId) {
+            const select = document.getElementById(selectId);
+            if (!select) return;
+
+            // Keep existing priority options (first 4: disabled prop, Åland, Finland, Sweden)
+            // We assume the HTML structure has these first. 
+            // We'll append a separator and then the rest.
+
+            const separator = document.createElement('option');
+            separator.disabled = true;
+            separator.textContent = "-----------------";
+            select.appendChild(separator);
+
+            allCountries.forEach(country => {
+                // Skip if already in priority list to avoid dups (simple check)
+                if (['Finland', 'Sweden'].includes(country)) return;
+                // Åland is not in standard lists usually, so safe.
+
+                const option = document.createElement('option');
+                option.value = country;
+                option.textContent = country;
+                select.appendChild(option);
+            });
+        }
     </script>
     <script src="js/page-booking.js"></script>
 </body>

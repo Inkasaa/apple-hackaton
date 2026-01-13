@@ -305,7 +305,17 @@ func handleAdopt(w http.ResponseWriter, r *http.Request) {
 
 	// Price Calculation
 	basePrice := 60.0
-	totalPrice := basePrice * float64(data.Years)
+	years := float64(data.Years)
+	
+	// Duration Discount
+	durationDiscount := 0.0
+	if data.Years == 2 {
+		durationDiscount = 0.10
+	} else if data.Years >= 3 {
+		durationDiscount = 0.15
+	}
+	
+	totalPrice := basePrice * years * (1.0 - durationDiscount)
 
 	// Validate Promo Code
 	if data.PromoCode != "" {

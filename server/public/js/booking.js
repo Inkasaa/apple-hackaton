@@ -52,11 +52,26 @@ const basePrice = 60;
 
 function updatePrice() {
     const years = parseInt(document.getElementById('years').value);
-    const total = basePrice * years * (1 - currentDiscount / 100);
+
+    // Duration Discount Logic
+    let durationDiscount = 0;
+    if (years === 2) {
+        durationDiscount = 0.10; // 10% for 2 years
+    } else if (years >= 3) {
+        durationDiscount = 0.15; // 15% for 3+ years
+    }
+
+    // Combine discounts: calculate base after time discount, then apply promo discount?
+    // Or stack percentages? Usually safer to chain them or max them. 
+    // Let's chain: Base * Years * (1 - DurationDisc) * (1 - PromoDisc) to be generous/logical.
+
+    const baseTotal = basePrice * years;
+    const timeDiscountedTotal = baseTotal * (1 - durationDiscount);
+    const finalTotal = timeDiscountedTotal * (1 - currentDiscount / 100);
 
     const btn = document.getElementById('submitBtn');
     if (btn) {
-        btn.innerText = `ADOPTERA TRÄD (${Math.round(total)}€)`;
+        btn.innerText = `ADOPTERA TRÄD (${Math.round(finalTotal)}€)`;
     }
 }
 
