@@ -5,48 +5,236 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard - Öfvergårds</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .status-interested { background-color: #fef3c7; color: #92400e; }
+        .status-paid { background-color: #dbeafe; color: #1e40af; }
+        .status-email_sent { background-color: #e0e7ff; color: #3730a3; }
+        .status-subscribed { background-color: #d1fae5; color: #065f46; }
+    </style>
 </head>
-<body class="bg-gray-50 p-8">
-    <div class="max-w-4xl mx-auto">
-        <h1 class="text-3xl font-bold mb-8">Customer Management</h1>
-        <div class="bg-white rounded-lg shadow overflow-hidden">
-            <table class="min-w-full divide-y divide-gray-200">
-                <thead class="bg-gray-100">
-                    <tr>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Customer</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tree</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
-                    </tr>
-                </thead>
-                <tbody id="customerTable" class="bg-white divide-y divide-gray-200">
-                    <!-- Data will be loaded here -->
-                </tbody>
-            </table>
+<body class="bg-gray-50 min-h-screen">
+    <!-- Header -->
+    <nav class="bg-white shadow-sm border-b">
+        <div class="max-w-6xl mx-auto px-6 py-4 flex justify-between items-center">
+            <div>
+                <h1 class="text-xl font-bold text-green-800">🍎 Öfvergårds Admin</h1>
+                <p class="text-xs text-gray-500">Adopt-an-Apple-Tree Management</p>
+            </div>
+            <div class="flex gap-4 items-center">
+                <a href="/admin/content" class="text-sm bg-green-50 text-green-800 border border-green-200 px-3 py-1 rounded-lg hover:bg-green-100">✏️ Edit Content</a>
+                <a href="/admin/feedback" class="text-sm bg-green-50 text-green-800 border border-green-200 px-3 py-1 rounded-lg hover:bg-green-100">📊 Feedback</a>
+                <a href="/" class="text-sm text-green-700 hover:underline">← Back to Site</a>
+            </div>
         </div>
-    </div>
+    </nav>
+
+    <main class="max-w-6xl mx-auto p-6">
+        <!-- Demo Notice -->
+        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+            <p class="text-sm text-yellow-800">
+                 <strong>Demo Mode:</strong> This dashboard shows simulated data. In production, this would connect to real payment processors and email services.
+            </p>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+            <div class="bg-white p-6 rounded-xl shadow-sm border">
+                <p class="text-sm text-gray-500">Total Adoptions</p>
+                <p id="statTotal" class="text-3xl font-bold text-gray-800">-</p>
+            </div>
+            <div class="bg-white p-6 rounded-xl shadow-sm border">
+                <p class="text-sm text-gray-500">Paid Customers</p>
+                <p id="statPaid" class="text-3xl font-bold text-green-600">-</p>
+            </div>
+            <div class="bg-white p-6 rounded-xl shadow-sm border">
+                <p class="text-sm text-gray-500">Newsletter Subscribers</p>
+                <p id="statNewsletter" class="text-3xl font-bold text-blue-600">-</p>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Customers Table -->
+            <div class="lg:col-span-2">
+                <div class="bg-white rounded-xl shadow-sm border overflow-hidden">
+                    <div class="px-6 py-4 border-b bg-gray-50">
+                        <h2 class="font-semibold text-gray-800">Customers</h2>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Customer</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tree</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Newsletter</th>
+                                </tr>
+                            </thead>
+                            <tbody id="customerTable" class="bg-white divide-y divide-gray-200">
+                                <tr><td colspan="4" class="px-4 py-8 text-center text-gray-400">Loading...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Activity Feed -->
+            <div class="lg:col-span-1">
+                <div class="bg-white rounded-xl shadow-sm border overflow-hidden">
+                    <div class="px-6 py-4 border-b bg-gray-50">
+                        <h2 class="font-semibold text-gray-800">Automation Log</h2>
+                        <p class="text-xs text-gray-500">Recent automated actions</p>
+                    </div>
+                    <div id="activityFeed" class="divide-y divide-gray-100 max-h-96 overflow-y-auto">
+                        <div class="px-4 py-8 text-center text-gray-400 text-sm">Loading...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Legend -->
+        <div class="mt-8 bg-white rounded-xl shadow-sm border p-6">
+            <h3 class="font-semibold text-gray-800 mb-4">Status Flow (How it works)</h3>
+            <div class="flex flex-wrap gap-4 items-center">
+                <div class="flex items-center gap-2">
+                    <span class="px-2 py-1 text-xs rounded-full status-interested">Interested</span>
+        
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="px-2 py-1 text-xs rounded-full status-paid">Paid</span>
+                  
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="px-2 py-1 text-xs rounded-full status-email_sent">Email Sent</span>
+                 
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="px-2 py-1 text-xs rounded-full status-subscribed">Subscribed</span>
+                </div>
+            </div>
+            <p class="text-sm text-gray-500 mt-4">
+                Each step happens automatically after payment. In production, these would trigger real emails via SendGrid/Mailchimp and update a CRM.
+            </p>
+        </div>
+    </main>
+
     <script>
-        async function loadCustomers() {
-            const resp = await fetch('/api/customers');
-            const customers = await resp.json();
-            const table = document.getElementById('customerTable');
-            table.innerHTML = customers.map(c => `
-                <tr>
-                    <td class="px-6 py-4">
-                        <div class="text-sm font-medium text-gray-900">${c.name}</div>
-                        <div class="text-sm text-gray-500">${c.email}</div>
-                    </td>
-                    <td class="px-6 py-4 text-sm text-gray-500">${c.treeType}</td>
-                    <td class="px-6 py-4">
-                        <span class="px-2 py-1 text-xs rounded-full ${c.paid ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}">
-                            ${c.paid ? 'Paid' : 'Pending'}
-                        </span>
-                    </td>
-                    <td class="px-6 py-4 text-sm text-gray-500 text-xs">${new Date(c.createdAt).toLocaleDateString()}</td>
-                </tr>
-            `).join('');
+        // Format status for display
+        function formatStatus(status) {
+            const labels = {
+                'interested': 'Interested',
+                'paid': 'Paid',
+                'email_sent': 'Email Sent',
+                'subscribed': 'Subscribed'
+            };
+            return labels[status] || status;
         }
+
+        // Format newsletter stage
+        function formatNewsletter(stage) {
+            const labels = {
+                'none': '—',
+                'welcome': 'Welcome Series',
+                'monthly': 'Monthly Updates'
+            };
+            return labels[stage] || stage;
+        }
+
+        // Get action icon
+        function getActionIcon(action) {
+            const icons = {
+                'signup': '',
+                'payment': '',
+                'email': '',
+                'newsletter': ''
+            };
+            return icons[action] || '';
+        }
+
+        // Load stats
+        async function loadStats() {
+            try {
+                const resp = await fetch('/api/stats');
+                const stats = await resp.json();
+                document.getElementById('statTotal').textContent = stats.totalCustomers || 0;
+                document.getElementById('statPaid').textContent = stats.paidCustomers || 0;
+                document.getElementById('statNewsletter').textContent = stats.newsletterSubscribers || 0;
+            } catch (err) {
+                console.error('Error loading stats:', err);
+            }
+        }
+
+        // Load customers
+        async function loadCustomers() {
+            try {
+                const resp = await fetch('/api/customers');
+                const customers = await resp.json();
+                const table = document.getElementById('customerTable');
+                
+                if (!customers || customers.length === 0) {
+                    table.innerHTML = '<tr><td colspan="4" class="px-4 py-8 text-center text-gray-400">No customers yet. Try the adoption form!</td></tr>';
+                    return;
+                }
+                
+                table.innerHTML = customers.map(c => `
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-4 py-3">
+                            <div class="text-sm font-medium text-gray-900">${c.name}</div>
+                            <div class="text-xs text-gray-500">${c.email}</div>
+                            <div class="text-xs text-gray-400">${c.country}</div>
+                        </td>
+                        <td class="px-4 py-3 text-sm text-gray-600">${c.treeType}</td>
+                        <td class="px-4 py-3">
+                            <span class="px-2 py-1 text-xs rounded-full status-${c.status}">
+                                ${formatStatus(c.status)}
+                            </span>
+                        </td>
+                        <td class="px-4 py-3 text-xs text-gray-500">${formatNewsletter(c.newsletterStage)}</td>
+                    </tr>
+                `).join('');
+            } catch (err) {
+                console.error('Error loading customers:', err);
+            }
+        }
+
+        // Load activity feed
+        async function loadActivity() {
+            try {
+                const resp = await fetch('/api/activity');
+                const activities = await resp.json();
+                const feed = document.getElementById('activityFeed');
+                
+                if (!activities || activities.length === 0) {
+                    feed.innerHTML = '<div class="px-4 py-8 text-center text-gray-400 text-sm">No activity yet</div>';
+                    return;
+                }
+                
+                feed.innerHTML = activities.map(a => `
+                    <div class="px-4 py-3 hover:bg-gray-50">
+                        <div class="flex items-start gap-2">
+                            <span class="text-lg">${getActionIcon(a.action)}</span>
+                            <div class="flex-1 min-w-0">
+                                <p class="text-sm text-gray-800">${a.message}</p>
+                                <p class="text-xs text-gray-400">${new Date(a.createdAt).toLocaleString()}</p>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (err) {
+                console.error('Error loading activity:', err);
+            }
+        }
+
+        // Initial load
+        loadStats();
         loadCustomers();
+        loadActivity();
+
+        // Auto-refresh every 3 seconds to show automation updates
+        setInterval(() => {
+            loadStats();
+            loadCustomers();
+            loadActivity();
+        }, 3000);
     </script>
 </body>
 </html>

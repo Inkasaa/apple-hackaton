@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment - Öfvergårds</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background-color: #fdfbf7; }
+        .btn-primary { background-color: #4a6741; color: white; }
+        .btn-primary:hover { background-color: #3d5535; }
+    </style>
+</head>
+<body class="text-gray-800 font-sans">
+    <nav class="p-6">
+        <h1 class="text-2xl font-bold text-green-800">Öfvergårds</h1>
+    </nav>
+
+    <main class="max-w-xl mx-auto p-6">
+        <!-- Progress Steps -->
+        <div class="flex items-center justify-center mb-8">
+            <div class="flex items-center">
+                <div class="w-8 h-8 bg-green-600 text-white rounded-full flex items-center justify-center text-sm font-bold">✓</div>
+                <span class="ml-2 text-sm text-green-700 font-medium">Sign Up</span>
+            </div>
+            <div class="w-12 h-1 bg-green-600 mx-2"></div>
+            <div class="flex items-center">
+                <div class="w-8 h-8 bg-green-600 text-white rounded-full flex items-center justify-center text-sm font-bold">2</div>
+                <span class="ml-2 text-sm text-green-700 font-medium">Payment</span>
+            </div>
+            <div class="w-12 h-1 bg-gray-300 mx-2"></div>
+            <div class="flex items-center">
+                <div class="w-8 h-8 bg-gray-300 text-gray-500 rounded-full flex items-center justify-center text-sm font-bold">3</div>
+                <span class="ml-2 text-sm text-gray-500">Complete</span>
+            </div>
+        </div>
+
+        <div class="bg-white p-8 rounded-xl shadow-sm border border-gray-100">
+            <!-- Mock Payment Form -->
+            <div id="paymentForm">
+                <h2 class="text-2xl font-serif mb-6 text-center">Complete Your Adoption</h2>
+                
+                <!-- Order Summary -->
+                <div class="bg-green-50 p-4 rounded-lg mb-6">
+                    <h3 class="font-semibold text-green-800 mb-2">Order Summary</h3>
+                    <div class="flex justify-between text-sm">
+                        <span>Apple Tree Adoption (<span id="treeTypeDisplay">-</span>)</span>
+                        <span class="font-medium">€50.00</span>
+                    </div>
+                    <div class="flex justify-between text-sm mt-1 text-gray-500">
+                        <span>Adopter: <span id="nameDisplay">-</span></span>
+                    </div>
+                    <div class="border-t border-green-200 mt-3 pt-3 flex justify-between font-bold text-green-800">
+                        <span>Total</span>
+                        <span>€50.00</span>
+                    </div>
+                </div>
+
+                <!-- Mock Card Input -->
+                <div class="space-y-4 mb-6">
+                    <div class="bg-yellow-50 border border-yellow-200 p-3 rounded-lg text-sm text-yellow-800">
+                         <strong>Demo Mode:</strong> This is a simulated payment. No real charges will be made.
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Card Number</label>
+                        <input type="text" value="4242 4242 4242 4242" disabled 
+                            class="w-full border p-2 rounded bg-gray-50 text-gray-500">
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium mb-1">Expiry</label>
+                            <input type="text" value="12/28" disabled 
+                                class="w-full border p-2 rounded bg-gray-50 text-gray-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-1">CVC</label>
+                            <input type="text" value="123" disabled 
+                                class="w-full border p-2 rounded bg-gray-50 text-gray-500">
+                        </div>
+                    </div>
+                </div>
+
+                <button id="payBtn" onclick="processPayment()" 
+                    class="w-full btn-primary py-3 rounded-lg font-semibold transition-all shadow-md">
+                    Pay €50.00 (Simulated)
+                </button>
+            </div>
+
+            <!-- Processing State -->
+            <div id="processingState" class="hidden text-center py-8">
+                <div class="animate-spin w-12 h-12 border-4 border-green-200 border-t-green-600 rounded-full mx-auto mb-4"></div>
+                <p class="text-lg text-gray-600">Processing payment...</p>
+                <p class="text-sm text-gray-400 mt-2">This is simulated and takes 2 seconds</p>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Get customer data from URL params (passed from form)
+        const params = new URLSearchParams(window.location.search);
+        const customerId = params.get('id');
+        const customerName = params.get('name');
+        const treeType = params.get('tree');
+
+        // Display customer info
+        document.getElementById('nameDisplay').textContent = customerName || 'Guest';
+        document.getElementById('treeTypeDisplay').textContent = treeType || 'Apple Tree';
+
+        async function processPayment() {
+            const paymentForm = document.getElementById('paymentForm');
+            const processingState = document.getElementById('processingState');
+            
+            // Show processing state
+            paymentForm.classList.add('hidden');
+            processingState.classList.remove('hidden');
+
+            // MOCK: Simulate payment processing delay (2 seconds)
+            await new Promise(resolve => setTimeout(resolve, 2000));
+
+            // MOCK: Call backend to confirm "payment"
+            try {
+                const response = await fetch('/api/confirm-payment', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ customerId: parseInt(customerId) })
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    // Redirect to success page with customer info
+                    window.location.href = `/success.html?id=${customerId}&name=${encodeURIComponent(customerName)}`;
+                } else {
+                    alert('Payment simulation failed. Please try again.');
+                    paymentForm.classList.remove('hidden');
+                    processingState.classList.add('hidden');
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Error connecting to server.');
+                paymentForm.classList.remove('hidden');
+                processingState.classList.add('hidden');
+            }
+        }
+    </script>
+</body>
+</html>

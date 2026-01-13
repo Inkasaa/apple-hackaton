@@ -1,0 +1,181 @@
+{{define "content"}}
+<div class="min-h-screen bg-gray-100">
+    <!-- Header -->
+    <div class="text-white py-8" style="background-color: #4a6741;">
+        <div class="max-w-6xl mx-auto px-4">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-3xl font-bold"> Feedback Dashboard</h1>
+                    <p class="text-green-100 mt-1">View and analyze customer feedback</p>
+                </div>
+                <div class="flex gap-4">
+                    <a href="/admin.html" class="bg-white/20 hover:bg-white/30 px-4 py-2 rounded-lg transition-colors">
+                        ← Back to Admin
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="max-w-6xl mx-auto px-4 py-8">
+        <!-- Stats Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <!-- Farm Shop Responses -->
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <div class="flex items-center gap-4">
+                    <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                        
+                    </div>
+                    <div>
+                        <p class="text-gray-500 text-sm">Farm Shop</p>
+                        <p class="text-3xl font-bold text-gray-800">{{.Stats.TotalFarmshop}}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Experience Responses -->
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <div class="flex items-center gap-4">
+                    <div class="w-12 h-12 bg-amber-100 rounded-lg flex items-center justify-center">
+    
+                    </div>
+                    <div>
+                        <p class="text-gray-500 text-sm">Experience</p>
+                        <p class="text-3xl font-bold text-gray-800">{{.Stats.TotalExperience}}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Farm Shop Rating -->
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <div class="flex items-center gap-4">
+                    <div class="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
+                        <span class="text-2xl">⭐</span>
+                    </div>
+                    <div>
+                        <p class="text-gray-500 text-sm">Shop Avg</p>
+                        <p class="text-3xl font-bold text-gray-800">{{printf "%.1f" .Stats.AvgFarmshop}}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Experience Rating -->
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <div class="flex items-center gap-4">
+                    <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                        
+                    </div>
+                    <div>
+                        <p class="text-gray-500 text-sm">Exp Avg</p>
+                        <p class="text-3xl font-bold text-gray-800">{{printf "%.1f" .Stats.AvgExperience}}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- QR Code Section -->
+        <div class="bg-white rounded-xl shadow-lg p-6 mb-8">
+            <h2 class="text-xl font-bold text-gray-800 mb-4">📱 Share Survey Links</h2>
+            <p class="text-gray-600 mb-6">Use these links or generate QR codes for customers to easily access feedback forms.</p>
+            <div class="grid md:grid-cols-2 gap-6">
+                <div class="border border-gray-200 rounded-lg p-4">
+                    <div class="flex items-center gap-3 mb-3">
+                       
+                        <span class="font-semibold text-gray-800">Farm Shop Survey</span>
+                    </div>
+                    <code class="block bg-gray-100 p-3 rounded text-sm text-gray-700 mb-3 break-all">
+                        http://localhost:8080/feedback/farmshop
+                    </code>
+                    <a href="/feedback/farmshop" target="_blank" class="inline-block bg-green-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-green-700 transition-colors">
+                        Open Survey →
+                    </a>
+                </div>
+                <div class="border border-gray-200 rounded-lg p-4">
+                    <div class="flex items-center gap-3 mb-3">
+                       
+                        <span class="font-semibold text-gray-800">Experience Survey</span>
+                    </div>
+                    <code class="block bg-gray-100 p-3 rounded text-sm text-gray-700 mb-3 break-all">
+                        http://localhost:8080/feedback/experience
+                    </code>
+                    <a href="/feedback/experience" target="_blank" class="inline-block bg-amber-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-amber-700 transition-colors">
+                        Open Survey →
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Feedback -->
+        <div class="bg-white rounded-xl shadow-lg p-6">
+            <h2 class="text-xl font-bold text-gray-800 mb-4"> Recent Feedback</h2>
+            
+            {{if .Stats.RecentFeedback}}
+            <div class="space-y-4">
+                {{range .Stats.RecentFeedback}}
+                <div class="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                    <div class="flex items-start justify-between mb-3">
+                        <div class="flex items-center gap-3">
+                            {{if eq .SurveyType "farmshop"}}
+                            <span class="px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-medium"> Farm Shop</span>
+                            {{else}}
+                            <span class="px-3 py-1 bg-amber-100 text-amber-700 rounded-full text-sm font-medium"> Experience</span>
+                            {{end}}
+                            <div class="flex text-yellow-400">
+                                {{range $i := iterate .Rating}}★{{end}}{{range $i := iterate (minus 5 .Rating)}}<span class="text-gray-300">★</span>{{end}}
+                            </div>
+                        </div>
+                        <span class="text-gray-400 text-sm">{{.CreatedAt}}</span>
+                    </div>
+                    
+                    {{if .Experience}}
+                    <div class="mb-2">
+                        <span class="text-gray-500 text-sm">Experience:</span>
+                        <p class="text-gray-700">{{.Experience}}</p>
+                    </div>
+                    {{end}}
+                    
+                    {{if .Highlight}}
+                    <div class="mb-2">
+                        <span class="text-gray-500 text-sm">Highlight:</span>
+                        <p class="text-gray-700 text-green-700"> {{.Highlight}}</p>
+                    </div>
+                    {{end}}
+                    
+                    {{if .Improvement}}
+                    <div class="mb-2">
+                        <span class="text-gray-500 text-sm">Improvement:</span>
+                        <p class="text-gray-700 text-amber-700"> {{.Improvement}}</p>
+                    </div>
+                    {{end}}
+                    
+                    <div class="flex items-center gap-4 mt-3 pt-3 border-t border-gray-100">
+                        {{if .WouldRecommend}}
+                        <span class="text-green-600 text-sm">👍 Would recommend</span>
+                        {{else}}
+                        <span class="text-gray-400 text-sm">🤔 Might not recommend</span>
+                        {{end}}
+                        {{if .Email}}
+                        <span class="text-gray-400 text-sm"> {{.Email}}</span>
+                        {{end}}
+                    </div>
+                </div>
+                {{end}}
+            </div>
+            {{else}}
+            <div class="text-center py-12">
+                
+                <p class="text-gray-500 text-lg">No feedback yet</p>
+                <p class="text-gray-400">Share the survey links with customers to start collecting feedback!</p>
+            </div>
+            {{end}}
+        </div>
+
+        <!-- Demo Notice -->
+        <div class="mt-8 p-4 bg-blue-50 border border-blue-200 rounded-lg text-center">
+            <p class="text-blue-700 text-sm">
+                 <strong>Demo Mode:</strong> This dashboard shows mock feedback data. In production, this would include advanced analytics, export options, and automated alerts for low ratings.
+            </p>
+        </div>
+    </div>
+</div>
+{{end}}

@@ -2,7 +2,7 @@ document.getElementById('adoptForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     const btn = document.getElementById('submitBtn');
     btn.disabled = true;
-    btn.innerText = 'Redirecting to payment...';
+    btn.innerText = 'Processing...';
 
     const data = {
         name: document.getElementById('name').value,
@@ -19,17 +19,18 @@ document.getElementById('adoptForm').addEventListener('submit', async (e) => {
         });
 
         const result = await response.json();
-        if (result.url) {
-            window.location.href = result.url;
+        if (result.success) {
+            // Redirect to mock payment page with customer info
+            window.location.href = `/payment.html?id=${result.id}&name=${encodeURIComponent(result.name)}&tree=${encodeURIComponent(result.treeType)}`;
         } else {
             alert('Something went wrong. Please try again.');
             btn.disabled = false;
-            btn.innerText = 'Adopt for 50 €';
+            btn.innerText = 'Adopt a Tree';
         }
     } catch (err) {
         console.error(err);
         alert('Error connecting to server.');
         btn.disabled = false;
-        btn.innerText = 'Adopt for 50 €';
+        btn.innerText = 'Adopt a Tree';
     }
 });

@@ -1,0 +1,101 @@
+{{define "base"}}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{.Title}} - Öfvergårds</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { 
+            background-color: #fdfbf7; 
+            font-family: 'Georgia', serif;
+        }
+        .font-sans { font-family: system-ui, -apple-system, sans-serif; }
+        .btn-primary { 
+            background-color: #4a6741; 
+            color: white; 
+        }
+        .btn-primary:hover { 
+            background-color: #3d5535; 
+        }
+        .btn-outline {
+            border: 2px solid #4a6741;
+            color: #4a6741;
+        }
+        .btn-outline:hover {
+            background-color: #4a6741;
+            color: white;
+        }
+        .text-green-brand { color: #4a6741; }
+        .bg-green-brand { background-color: #4a6741; }
+        .bg-warm { background-color: #f9f6f1; }
+        .bg-warm-dark { background-color: #f0ebe3; }
+    </style>
+</head>
+<body class="text-gray-800 min-h-screen flex flex-col">
+    <!-- Navigation -->
+    <nav class="bg-white/80 backdrop-blur-sm sticky top-0 z-50 border-b border-gray-100">
+        <div class="max-w-5xl mx-auto px-6 py-4">
+            <div class="flex justify-between items-center">
+                <a href="/" class="text-xl font-bold text-green-brand">
+                    🍎 Öfvergårds
+                </a>
+                
+                <!-- Mobile menu button -->
+                <button id="menuBtn" class="md:hidden p-2 text-gray-600" onclick="toggleMenu()">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+                    </svg>
+                </button>
+
+                <!-- Desktop Navigation -->
+                <div class="hidden md:flex items-center gap-6">
+                    <a href="/" class="text-sm font-sans text-gray-600 hover:text-green-brand transition-colors">Home</a>
+                    <a href="/products" class="text-sm font-sans text-gray-600 hover:text-green-brand transition-colors">Products</a>
+                    <a href="/adopt" class="text-sm font-sans text-gray-600 hover:text-green-brand transition-colors">Adopt a Tree</a>
+                    <a href="/feedback/farmshop" class="text-sm font-sans text-gray-600 hover:text-green-brand transition-colors">Feedback</a>
+                    <a href="/admin.html" class="text-sm font-sans text-gray-400 hover:text-gray-600 transition-colors">Admin</a>
+                </div>
+            </div>
+
+            <!-- Mobile Navigation -->
+            <div id="mobileMenu" class="hidden md:hidden pt-4 pb-2 border-t mt-4">
+                <div class="flex flex-col gap-3">
+                    <a href="/" class="text-sm font-sans text-gray-600 hover:text-green-brand">Home</a>
+                    <a href="/products" class="text-sm font-sans text-gray-600 hover:text-green-brand">Products</a>
+                    <a href="/adopt" class="text-sm font-sans text-gray-600 hover:text-green-brand">Adopt a Tree</a>
+                    <a href="/feedback/farmshop" class="text-sm font-sans text-gray-600 hover:text-green-brand">Feedback</a>
+                    <a href="/admin.html" class="text-sm font-sans text-gray-400 hover:text-gray-600">Admin</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="flex-1">
+        {{template "content" .}}
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-warm-dark border-t border-gray-200 mt-16">
+        <div class="max-w-5xl mx-auto px-6 py-12">
+            <div class="text-center">
+                <p class="text-green-brand font-bold text-lg mb-2">Öfvergårds</p>
+                <p class="text-sm text-gray-500 font-sans">Åland archipelago, Finland</p>
+                <p class="text-xs text-gray-400 font-sans mt-4">
+                    A small family farm sharing nature, apples, and quiet moments.
+                </p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        function toggleMenu() {
+            const menu = document.getElementById('mobileMenu');
+            menu.classList.toggle('hidden');
+        }
+    </script>
+</body>
+</html>
+{{end}}
