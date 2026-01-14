@@ -1,0 +1,94 @@
+{{define "admin-content"}}
+<!-- Page Header -->
+<div class="mb-8">
+    <h1 class="text-2xl font-bold text-green-brand mb-2">Feedback Overview</h1>
+    <p class="text-gray-600 font-sans text-sm">
+        What visitors and customers are saying. A simple overview without complex analytics.
+    </p>
+</div>
+
+<!-- Two Sections -->
+<div class="grid md:grid-cols-2 gap-6">
+    
+    <!-- Farm Shop Feedback -->
+    <div class="bg-white rounded-lg border border-gray-100 shadow-sm">
+        <div class="px-5 py-4 border-b border-gray-100">
+            <h2 class="text-lg font-bold text-green-brand">Farm Shop Feedback</h2>
+            <div class="flex items-center gap-4 mt-2">
+                <span class="text-sm text-gray-500 font-sans">{{.FarmShop.Total}} responses</span>
+                {{if .FarmShop.LatestDate}}
+                <span class="text-xs text-gray-400 font-sans">Latest: {{.FarmShop.LatestDate}}</span>
+                {{end}}
+            </div>
+        </div>
+        
+        <div class="divide-y divide-gray-100">
+            {{range .FarmShop.Samples}}
+            <div class="px-5 py-4">
+                <div class="flex items-center gap-2 mb-2">
+                    {{range iterate .Rating}}
+                    <span class="text-yellow-400">★</span>
+                    {{end}}
+                    {{range iterate (minus 5 .Rating)}}
+                    <span class="text-gray-200">★</span>
+                    {{end}}
+                </div>
+                <p class="text-gray-600 font-sans text-sm italic">"{{.Comment}}"</p>
+                <div class="flex gap-2 mt-1">
+                    <span class="text-xs text-gray-400 font-sans">{{.Name}}</span>
+                    <span class="text-xs text-gray-300 font-sans">{{.Country}}</span>
+                </div>
+                <span class="text-xs text-gray-400 font-sans mt-2 block">{{.Date}}</span>
+            </div>
+            {{else}}
+            <div class="px-5 py-8 text-center text-gray-400 font-sans text-sm">
+                No farm shop feedback yet
+            </div>
+            {{end}}
+        </div>
+    </div>
+
+    <!-- Experience Feedback -->
+    <div class="bg-white rounded-lg border border-gray-100 shadow-sm">
+        <div class="px-5 py-4 border-b border-gray-100">
+            <h2 class="text-lg font-bold text-green-brand">Experience Feedback</h2>
+            <div class="flex items-center gap-4 mt-2">
+                <span class="text-sm text-gray-500 font-sans">{{.Experience.Total}} responses</span>
+                {{if .Experience.LatestDate}}
+                <span class="text-xs text-gray-400 font-sans">Latest: {{.Experience.LatestDate}}</span>
+                {{end}}
+            </div>
+        </div>
+        
+        <div class="divide-y divide-gray-100">
+            {{range .Experience.Samples}}
+            <div class="px-5 py-4">
+                <div class="flex items-center gap-2 mb-2">
+                    {{range iterate .Rating}}
+                    <span class="text-yellow-400">★</span>
+                    {{end}}
+                    {{range iterate (minus 5 .Rating)}}
+                    <span class="text-gray-200">★</span>
+                    {{end}}
+                    <span class="text-xs text-gray-400 font-sans ml-2">{{.Experience}}</span>
+                </div>
+                <p class="text-gray-600 font-sans text-sm italic">"{{.Comment}}"</p>
+                <div class="flex gap-2 mt-1">
+                    <span class="text-xs text-gray-400 font-sans">{{.Name}}</span>
+                    <span class="text-xs text-gray-300 font-sans">{{.Country}}</span>
+                </div>
+                <span class="text-xs text-gray-400 font-sans mt-2 block">{{.Date}}</span>
+            </div>
+            {{else}}
+            <div class="px-5 py-8 text-center text-gray-400 font-sans text-sm">
+                No experience feedback yet
+            </div>
+            {{end}}
+        </div>
+    </div>
+</div>
+
+<p class="mt-6 text-xs text-gray-400 font-sans text-center">
+    Feedback is collected through the survey forms at /feedback/farmshop and /feedback/experience
+</p>
+{{end}}

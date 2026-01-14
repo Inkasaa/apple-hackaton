@@ -1,0 +1,101 @@
+{{define "admin-content"}}
+<!-- Page Header -->
+<div class="mb-8">
+    <h1 class="text-2xl font-bold text-green-brand mb-2">Customers</h1>
+    <p class="text-gray-600 font-sans text-sm">
+        Everyone who has interacted with Öfvergårds: tree adopters, experience participants, and visitors.
+    </p>
+</div>
+
+
+
+<!-- Customers Table -->
+<div class="bg-white rounded-lg border border-gray-100 shadow-sm overflow-hidden">
+    <div class="px-5 py-4 border-b border-gray-100">
+        <h2 class="text-lg font-bold text-green-brand">All Customers</h2>
+    </div>
+    
+    <div class="overflow-x-auto">
+        <table class="w-full">
+            <thead class="bg-warm-dark">
+                <tr>
+                    <th class="px-5 py-3 text-left text-xs font-semibold text-gray-600 font-sans uppercase tracking-wider">
+                        <a href="?sort=name" class="hover:underline">Name</a>
+                    </th>
+                    <th class="px-5 py-3 text-left text-xs font-semibold text-gray-600 font-sans uppercase tracking-wider">
+                        <a href="?sort=email" class="hover:underline">Email</a>
+                    </th>
+                    <th class="px-5 py-3 text-left text-xs font-semibold text-gray-600 font-sans uppercase tracking-wider">
+                        <a href="?sort=country" class="hover:underline">Country</a>
+                    </th>
+                    <th class="px-5 py-3 text-left text-xs font-semibold text-gray-600 font-sans uppercase tracking-wider">
+                        <a href="?sort=type" class="hover:underline">Type</a>
+                    </th>
+                    <th class="px-5 py-3 text-left text-xs font-semibold text-gray-600 font-sans uppercase tracking-wider">
+                        <a href="?sort=status" class="hover:underline">Status</a>
+                    </th>
+                    <th class="px-5 py-3 text-left text-xs font-semibold text-gray-600 font-sans uppercase tracking-wider">
+                        <a href="?sort=lastactivity" class="hover:underline">Last Activity</a>
+                    </th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+                {{range .Customers}}
+                <tr class="hover:bg-warm transition-colors">
+                    <td class="px-5 py-4 text-sm text-gray-800 font-sans">{{.Name}}</td>
+                    <td class="px-5 py-4 text-sm text-gray-600 font-sans">{{.Email}}</td>
+                    <td class="px-5 py-4 text-sm text-gray-600 font-sans">{{.Country}}</td>
+                    <td class="px-5 py-4">
+                        <span class="text-xs px-2 py-1 rounded-full font-sans
+                            {{if eq .CustomerType "tree_adopter"}}bg-green-100 text-green-700
+                            {{else if eq .CustomerType "experience"}}bg-blue-100 text-blue-700
+                            {{else}}bg-gray-100 text-gray-600{{end}}">
+                            {{if eq .CustomerType "tree_adopter"}}Tree Adopter
+                            {{else if eq .CustomerType "experience"}}Experience
+                            {{else}}Visitor{{end}}
+                        </span>
+                    </td>
+                    <td class="px-5 py-4">
+                        <span class="text-xs px-2 py-1 rounded-full font-sans
+                            {{if eq .Status "new"}}bg-yellow-100 text-yellow-700
+                            {{else if eq .Status "active"}}bg-green-100 text-green-700
+                            {{else}}bg-gray-100 text-gray-600{{end}}">
+                            {{.Status}}
+                        </span>
+                    </td>
+                    <td class="px-5 py-4 text-sm text-gray-500 font-sans">{{.LastActivity}}</td>
+                </tr>
+                {{else}}
+                <tr>
+                    <td colspan="5" class="px-5 py-8 text-center text-gray-400 font-sans text-sm">
+                        No customers yet
+                    </td>
+                </tr>
+                {{end}}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+
+<p class="mt-4 text-xs text-gray-400 font-sans text-center">
+        This is a read-only view. Customer data is managed through form submissions.
+</p>
+
+<script>
+// Preserve scroll position on sorting
+document.addEventListener('DOMContentLoaded', function() {
+    if (window.localStorage && localStorage.getItem('customerScroll')) {
+        window.scrollTo(0, parseInt(localStorage.getItem('customerScroll'), 10));
+        localStorage.removeItem('customerScroll');
+    }
+    document.querySelectorAll('th a').forEach(function(link) {
+        link.addEventListener('click', function(e) {
+            if (window.localStorage) {
+                localStorage.setItem('customerScroll', window.scrollY);
+            }
+        });
+    });
+});
+</script>
+{{end}}

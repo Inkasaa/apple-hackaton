@@ -1,0 +1,70 @@
+{{define "admin-base"}}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{.Title}} - Öfvergårds Admin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { 
+            background-color: #fdfbf7; 
+            font-family: 'Georgia', serif;
+        }
+        .font-sans { font-family: system-ui, -apple-system, sans-serif; }
+        .text-green-brand { color: #4a6741; }
+        .bg-green-brand { background-color: #4a6741; }
+        .bg-warm { background-color: #f9f6f1; }
+        .bg-warm-dark { background-color: #f0ebe3; }
+        .border-green-brand { border-color: #4a6741; }
+        .hover\:bg-green-light:hover { background-color: rgba(74, 103, 65, 0.1); }
+    </style>
+</head>
+<body class="text-gray-800 min-h-screen">
+    <!-- Admin Header -->
+    <header class="bg-white border-b border-gray-200">
+        <div class="max-w-6xl mx-auto px-6 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-4">
+                    <a href="/admin" class="text-xl font-bold text-green-brand">
+                        🍎 Öfvergårds
+                    </a>
+                    <span class="text-sm font-sans text-gray-400 border-l border-gray-300 pl-4">Admin</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Admin Navigation -->
+    <nav class="bg-warm-dark border-b border-gray-200">
+        <div class="max-w-6xl mx-auto px-6">
+            <div class="flex gap-1 overflow-x-auto">
+                <a href="/admin" class="px-4 py-3 text-sm font-sans text-gray-600 hover:text-green-brand hover:bg-white/50 transition-colors {{if eq .ActiveNav "dashboard"}}text-green-brand bg-white border-b-2 border-green-brand{{end}}">
+                    Overview
+                </a>
+                <a href="/admin/customers" class="px-4 py-3 text-sm font-sans text-gray-600 hover:text-green-brand hover:bg-white/50 transition-colors {{if eq .ActiveNav "customers"}}text-green-brand bg-white border-b-2 border-green-brand{{end}}">
+                    Customers
+                </a>
+                <a href="/admin/messages" class="px-4 py-3 text-sm font-sans text-gray-600 hover:text-green-brand hover:bg-white/50 transition-colors {{if eq .ActiveNav "messages"}}text-green-brand bg-white border-b-2 border-green-brand{{end}}">
+                    Messages
+                </a>
+                <a href="/admin/updates" class="px-4 py-3 text-sm font-sans text-gray-600 hover:text-green-brand hover:bg-white/50 transition-colors {{if eq .ActiveNav "updates"}}text-green-brand bg-white border-b-2 border-green-brand{{end}}">
+                    Newsletters
+                </a>
+                <a href="/admin/feedback" class="px-4 py-3 text-sm font-sans text-gray-600 hover:text-green-brand hover:bg-white/50 transition-colors {{if eq .ActiveNav "feedback"}}text-green-brand bg-white border-b-2 border-green-brand{{end}}">
+                    Feedback
+                </a>
+                <a href="/admin/calender" class="px-4 py-3 text-sm font-sans text-gray-600 hover:text-green-brand hover:bg-white/50 transition-colors {{if eq .ActiveNav "calender"}}text-green-brand bg-white border-b-2 border-green-brand{{end}}">
+                    Calender
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="max-w-6xl mx-auto px-6 py-8">
+        {{template "admin-content" .}}
+    </main>
+</body>
+</html>
+{{end}}
