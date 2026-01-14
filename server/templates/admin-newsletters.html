@@ -1,0 +1,416 @@
+{{define "admin-content"}}
+<!-- Header -->
+<div class="mb-6 flex justify-between items-center">
+    <div>
+        <h1 class="text-2xl font-bold text-green-brand mb-1">Newsletters</h1>
+        <p class="text-sm text-gray-500 font-sans">Compose, schedule, and view sent newsletters.</p>
+    </div>
+</div>
+
+<!-- Compose Area -->
+<div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 space-y-6 mb-12">
+    <div class="flex justify-between items-center mb-2">
+        <h2 class="text-lg font-bold text-gray-800">Compose New</h2>
+        <span
+            class="px-3 py-1 bg-gray-100 text-gray-600 rounded-full text-xs font-semibold uppercase tracking-wide">Draft</span>
+    </div>
+
+    <form id="newsletterForm" class="space-y-6">
+        <!-- Audience & Subject -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+                <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Audience</label>
+                <select id="audience"
+                    class="w-full rounded-lg border-gray-200 bg-gray-50 p-2.5 text-sm focus:ring-2 focus:ring-green-brand/20 focus:border-green-brand outline-none transition-all">
+                    <option value="all">All Subscribers (1,240)</option>
+                    <option value="adopters">Tree Adopters (48)</option>
+                    <option value="visitors">Recent Visitors (312)</option>
+                    <option value="vip">VIP / Repeat Customers</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Subject
+                    Line</label>
+                <input type="text" id="subject" placeholder="e.g., Harvest Season Updates..."
+                    class="w-full rounded-lg border-gray-200 bg-gray-50 p-2.5 text-sm focus:ring-2 focus:ring-green-brand/20 focus:border-green-brand outline-none transition-all">
+            </div>
+        </div>
+
+        <!-- Rich Text Editor -->
+        <div>
+            <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Content</label>
+            <div class="border border-gray-200 rounded-lg overflow-hidden bg-gray-50">
+                <!-- Toolbar container for Quill to attach to -->
+                <div id="toolbar-container" class="border-b border-gray-200 bg-white">
+                    <span class="ql-formats">
+                        <select class="ql-header"></select>
+                    </span>
+                    <span class="ql-formats">
+                        <button class="ql-bold"></button>
+                        <button class="ql-italic"></button>
+                        <button class="ql-underline"></button>
+                        <button class="ql-strike"></button>
+                    </span>
+                    <span class="ql-formats">
+                        <button class="ql-list" value="ordered"></button>
+                        <button class="ql-list" value="bullet"></button>
+                    </span>
+                    <span class="ql-formats">
+                        <button class="ql-link"></button>
+                        <button class="ql-image"></button>
+                    </span>
+                    <span class="ql-formats">
+                        <select class="ql-color"></select>
+                        <select class="ql-align"></select>
+                    </span>
+                </div>
+                <!-- Editor container -->
+                <div id="editor" class="bg-white"
+                    style="height: 300px; font-family: 'Georgia', serif; font-size: 16px;"></div>
+            </div>
+        </div>
+
+        <!-- Scheduling -->
+        <div
+            class="bg-blue-50/50 rounded-lg p-5 border border-blue-100 flex flex-col sm:flex-row gap-4 sm:items-center justify-between">
+            <div>
+                <h3 class="text-sm font-semibold text-blue-900 flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    Schedule Sending
+                </h3>
+                <p class="text-xs text-blue-600 mt-1">Pick a date to send automatically, or leave blank to send now.</p>
+            </div>
+            <div>
+                <input type="datetime-local" id="scheduleTime"
+                    class="rounded-lg border-blue-200 text-sm text-blue-800 focus:ring-blue-500 focus:border-blue-500 p-2">
+            </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="flex items-center justify-between pt-4 border-t border-gray-100">
+            <button type="button" class="text-gray-500 hover:text-gray-700 text-sm font-medium px-4 py-2">
+                Send Test Email
+            </button>
+            <div class="flex gap-3">
+                <button type="button" onclick="handleSave()"
+                    class="px-6 py-2.5 rounded-lg border border-gray-300 text-gray-700 font-medium hover:bg-gray-50 transition-colors">
+                    Save Draft
+                </button>
+                <button type="button" onclick="handleSubmit()" id="submitBtn"
+                    class="px-6 py-2.5 rounded-lg bg-green-brand text-white font-medium hover:bg-green-800 shadow-sm hover:shadow transition-all flex items-center gap-2">
+                    <span>Send Newsletter</span>
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<!-- Newsletter Archive / History -->
+<h2 class="text-xl font-bold text-gray-800 mb-6 border-t border-gray-200 pt-8">Newsletter Archive</h2>
+
+<!-- Filters Section -->
+<div class="bg-warm rounded-lg p-4 mb-6">
+    <!-- Audience Filter -->
+    <div class="mb-4">
+        <label class="text-xs font-sans text-gray-500 uppercase tracking-wide mb-2 block">Audience</label>
+        <div class="flex flex-wrap gap-2">
+            <button onclick="setFilter('audience', 'all')" data-filter-type="audience" data-filter-value="all"
+                class="filter-btn audience-filter active px-3 py-1.5 text-xs font-sans rounded-full border border-gray-200 bg-white text-gray-600 hover:border-green-brand hover:text-green-brand transition-colors">
+                All
+            </button>
+            <button onclick="setFilter('audience', 'adopters')" data-filter-type="audience" data-filter-value="adopters"
+                class="filter-btn audience-filter px-3 py-1.5 text-xs font-sans rounded-full border border-gray-200 bg-white text-gray-600 hover:border-green-600 hover:text-green-600 transition-colors">
+                🍎 Tree Adopters
+            </button>
+            <button onclick="setFilter('audience', 'subscribers')" data-filter-type="audience"
+                data-filter-value="subscribers"
+                class="filter-btn audience-filter px-3 py-1.5 text-xs font-sans rounded-full border border-gray-200 bg-white text-gray-600 hover:border-blue-600 hover:text-blue-600 transition-colors">
+                Subscribers
+            </button>
+            <button onclick="setFilter('audience', 'safari')" data-filter-type="audience" data-filter-value="safari"
+                class="filter-btn audience-filter px-3 py-1.5 text-xs font-sans rounded-full border border-gray-200 bg-white text-gray-600 hover:border-amber-600 hover:text-amber-600 transition-colors">
+                Safari Guests
+            </button>
+            <button onclick="setFilter('audience', 'tasting')" data-filter-type="audience" data-filter-value="tasting"
+                class="filter-btn audience-filter px-3 py-1.5 text-xs font-sans rounded-full border border-gray-200 bg-white text-gray-600 hover:border-purple-600 hover:text-purple-600 transition-colors">
+                Tasting Guests
+            </button>
+        </div>
+    </div>
+
+    <!-- Status and Date Filters -->
+    <div class="flex flex-wrap gap-6">
+        <!-- Status Filter -->
+        <div>
+            <label class="text-xs font-sans text-gray-500 uppercase tracking-wide mb-2 block">Status</label>
+            <div class="flex gap-2">
+                <button onclick="setFilter('status', 'all')" data-filter-type="status" data-filter-value="all"
+                    class="filter-btn status-filter active px-3 py-1.5 text-xs font-sans rounded-full border border-gray-200 bg-white text-gray-600 hover:border-green-brand hover:text-green-brand transition-colors">
+                    All
+                </button>
+                <button onclick="setFilter('status', 'published')" data-filter-type="status"
+                    data-filter-value="published"
+                    class="filter-btn status-filter px-3 py-1.5 text-xs font-sans rounded-full border border-gray-200 bg-white text-gray-600 hover:border-green-600 hover:text-green-600 transition-colors">
+                    Published
+                </button>
+                <button onclick="setFilter('status', 'draft')" data-filter-type="status" data-filter-value="draft"
+                    class="filter-btn status-filter px-3 py-1.5 text-xs font-sans rounded-full border border-gray-200 bg-white text-gray-600 hover:border-yellow-600 hover:text-yellow-600 transition-colors">
+                    Draft
+                </button>
+            </div>
+        </div>
+
+        <!-- Date Filter -->
+        <div class="flex-1">
+            <label class="text-xs font-sans text-gray-500 uppercase tracking-wide mb-2 block">Date Range</label>
+            <div class="flex items-center gap-2">
+                <input type="date" id="date-from" onchange="applyFilters()"
+                    class="px-3 py-1.5 text-xs font-sans rounded-lg border border-gray-200 bg-white text-gray-600 focus:border-green-brand focus:outline-none">
+                <span class="text-gray-400 text-xs">to</span>
+                <input type="date" id="date-to" onchange="applyFilters()"
+                    class="px-3 py-1.5 text-xs font-sans rounded-lg border border-gray-200 bg-white text-gray-600 focus:border-green-brand focus:outline-none">
+                <button onclick="clearDateRange()"
+                    class="px-3 py-1.5 text-xs font-sans rounded-full border border-gray-200 bg-white text-gray-400 hover:text-gray-600 hover:border-gray-300 transition-colors">
+                    Clear
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Updates List -->
+<div class="bg-white rounded-lg border border-gray-100 shadow-sm">
+    <div class="px-5 py-4 border-b border-gray-100 flex justify-end items-center">
+        <span id="result-count" class="text-xs text-gray-400 font-sans"></span>
+    </div>
+    <div id="updates-list" class="divide-y divide-gray-100">
+        {{range .Updates}}
+        <div class="update-item px-5 py-4 hover:bg-warm transition-colors" data-audience="{{.Audience}}"
+            data-status="{{.Status}}" data-date="{{.Date}}">
+            <div class="flex items-start justify-between gap-4">
+                <div class="flex-1">
+                    <div class="flex items-center gap-3 mb-2">
+                        <h3 class="font-semibold text-gray-800 font-sans text-sm">{{.Title}}</h3>
+                        {{if eq .Status "published"}}
+                        <span
+                            class="text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-700 font-sans">Published</span>
+                        {{else}}
+                        <span
+                            class="text-xs px-2 py-0.5 rounded-full bg-yellow-100 text-yellow-700 font-sans">Draft</span>
+                        {{end}}
+                    </div>
+                    <p class="text-gray-600 font-sans text-sm mb-2 line-clamp-2">{{.Preview}}</p>
+                    <div class="flex items-center gap-4">
+                        <span class="text-xs text-gray-400 font-sans">{{.Date}}</span>
+                        <span class="text-xs px-2 py-0.5 rounded-full font-sans
+                            {{if eq .Audience " adopters"}}bg-green-50 text-green-600 {{else if eq
+                            .Audience "subscribers" }}bg-blue-50 text-blue-600 {{else if eq .Audience "safari"
+                            }}bg-amber-50 text-amber-600 {{else if eq .Audience "tasting" }}bg-purple-50 text-purple-600
+                            {{else}}bg-gray-50 text-gray-600{{end}}">
+                            {{if eq .Audience "adopters"}}🍎 Tree Adopters
+                            {{else if eq .Audience "subscribers"}}Subscribers
+                            {{else if eq .Audience "safari"}}Safari Guests
+                            {{else if eq .Audience "tasting"}}Tasting Guests
+                            {{else}}All{{end}}
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {{else}}
+        <div class="px-5 py-8 text-center text-gray-400 font-sans text-sm">
+            No updates yet
+        </div>
+        {{end}}
+    </div>
+
+    <!-- No results message (hidden by default) -->
+    <div id="no-results" class="hidden px-5 py-8 text-center text-gray-400 font-sans text-sm">
+        No newsletters match your filters
+    </div>
+</div>
+
+<!-- Scripts -->
+<link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+<script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+
+<script>
+    // Initialize Quill
+    var quill = new Quill('#editor', {
+        theme: 'snow',
+        placeholder: 'Write your beautiful message here...',
+        modules: {
+            toolbar: '#toolbar-container'
+        }
+    });
+
+    // Handle Schedule Input changes
+    const scheduleInput = document.getElementById('scheduleTime');
+    const submitBtn = document.getElementById('submitBtn');
+    const submitText = submitBtn.querySelector('span');
+
+    scheduleInput.addEventListener('change', function (e) {
+        if (this.value) {
+            submitText.textContent = 'Schedule Newsletter';
+            submitBtn.classList.remove('bg-green-brand', 'hover:bg-green-800');
+            submitBtn.classList.add('bg-blue-600', 'hover:bg-blue-700');
+        } else {
+            submitText.textContent = 'Send Newsletter';
+            submitBtn.classList.add('bg-green-brand', 'hover:bg-green-800');
+            submitBtn.classList.remove('bg-blue-600', 'hover:bg-blue-700');
+        }
+    });
+
+    // Mock Save
+    function handleSave() {
+        const content = quill.root.innerHTML;
+        const subject = document.getElementById('subject').value;
+        if (!subject) {
+            alert("Please enter a subject line to save.");
+            return;
+        }
+
+        // Visual feedback
+        const btn = document.querySelector('button[onclick="handleSave()"]');
+        const originalText = btn.innerText;
+        btn.innerText = "Saving...";
+        setTimeout(() => {
+            btn.innerText = "Saved!";
+            setTimeout(() => btn.innerText = originalText, 2000);
+        }, 800);
+
+        console.log("Draft Saved:", { subject, content });
+    }
+
+    // Mock Submit
+    function handleSubmit() {
+        const content = quill.root.innerHTML;
+        const subject = document.getElementById('subject').value;
+        const audience = document.getElementById('audience').value;
+        const schedule = scheduleInput.value;
+
+        if (!subject) return alert("Please enter a subject line.");
+
+        let confirmMsg = `Are you sure you want to send "${subject}" to ${audience}?`;
+        if (schedule) {
+            const date = new Date(schedule).toLocaleString();
+            confirmMsg = `Are you sure you want to schedule "${subject}" for ${date}?`;
+        }
+
+        if (confirm(confirmMsg)) {
+            alert(schedule ? "Newsletter scheduled successfully!" : "Newsletter sent successfully!");
+            // Reset form
+            document.getElementById('newsletterForm').reset();
+            quill.setContents([]);
+        }
+    }
+
+    // --- Filter Logic ---
+    const filters = {
+        audience: 'all',
+        status: 'all'
+    };
+
+    function setFilter(type, value) {
+        filters[type] = value;
+
+        // Update button states for this filter type
+        const buttons = document.querySelectorAll(`.${type}-filter`);
+        buttons.forEach(btn => {
+            btn.classList.remove('active', 'bg-green-brand', 'text-white', 'border-green-brand');
+            if (btn.dataset.filterValue === value) {
+                btn.classList.add('active', 'bg-green-brand', 'text-white', 'border-green-brand');
+            }
+        });
+
+        applyFilters();
+    }
+
+    function clearDateRange() {
+        document.getElementById('date-from').value = '';
+        document.getElementById('date-to').value = '';
+        applyFilters();
+    }
+
+    function parseDate(dateStr) {
+        // Parse dates like "Jan 10, 2026" into a Date object
+        const months = {
+            'Jan': 0, 'Feb': 1, 'Mar': 2, 'Apr': 3, 'May': 4, 'Jun': 5,
+            'Jul': 6, 'Aug': 7, 'Sep': 8, 'Oct': 9, 'Nov': 10, 'Dec': 11
+        };
+        const parts = dateStr.match(/(\w+)\s+(\d+),\s+(\d+)/);
+        if (parts) {
+            return new Date(parseInt(parts[3]), months[parts[1]], parseInt(parts[2]));
+        }
+        return null;
+    }
+
+    function applyFilters() {
+        const items = document.querySelectorAll('.update-item');
+        const noResults = document.getElementById('no-results');
+        const resultCount = document.getElementById('result-count');
+
+        const dateFrom = document.getElementById('date-from').value;
+        const dateTo = document.getElementById('date-to').value;
+        const fromDate = dateFrom ? new Date(dateFrom) : null;
+        const toDate = dateTo ? new Date(dateTo) : null;
+
+        let visibleCount = 0;
+
+        items.forEach(item => {
+            const matchesAudience = filters.audience === 'all' || item.dataset.audience === filters.audience;
+            const matchesStatus = filters.status === 'all' || item.dataset.status === filters.status;
+
+            // Date range check
+            let matchesDate = true;
+            if (fromDate || toDate) {
+                const itemDate = parseDate(item.dataset.date);
+                if (itemDate) {
+                    if (fromDate && itemDate < fromDate) matchesDate = false;
+                    if (toDate && itemDate > toDate) matchesDate = false;
+                }
+            }
+
+            if (matchesAudience && matchesStatus && matchesDate) {
+                item.classList.remove('hidden');
+                visibleCount++;
+            } else {
+                item.classList.add('hidden');
+            }
+        });
+
+        // Update result count
+        const total = items.length;
+        if (visibleCount === total) {
+            resultCount.textContent = `${total} newsletters`;
+        } else {
+            resultCount.textContent = `${visibleCount} of ${total} newsletters`;
+        }
+
+        // Show/hide no results message
+        if (visibleCount === 0) {
+            noResults.classList.remove('hidden');
+        } else {
+            noResults.classList.add('hidden');
+        }
+    }
+
+    // Initialize filters
+    document.addEventListener('DOMContentLoaded', applyFilters);
+</script>
+
+<style>
+    .filter-btn.active {
+        background-color: #4a6741;
+        color: white;
+        border-color: #4a6741;
+    }
+</style>
+{{end}}

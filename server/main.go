@@ -306,6 +306,7 @@ func main() {
 		improvement TEXT,
 		would_recommend BOOLEAN,
 		email TEXT,
+		published BOOLEAN DEFAULT 0,
 		created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 	);`
 	_, err = db.Exec(createFeedbackTable)
@@ -343,7 +344,9 @@ func main() {
 	http.HandleFunc("/admin", handleAdminDashboard)
 	http.HandleFunc("/admin/customers", handleAdminCustomers)
 	http.HandleFunc("/admin/messages", handleAdminMessages)
-	http.HandleFunc("/admin/updates", handleAdminUpdates)
+	http.HandleFunc("/admin/updates", handleAdminNewsletters)              // Map existing "Updates" link to new Newsletters logic
+	http.HandleFunc("/admin/newsletters", handleAdminNewsletters)          // Add specific route for Newsletters
+	http.HandleFunc("/admin/system-templates", handleAdminSystemTemplates) // Add specific route for System Templates
 	http.HandleFunc("/admin/calender", handleAdminCalender)
 
 	port := os.Getenv("PORT")
@@ -1102,6 +1105,7 @@ type FeedbackSample struct {
 	Experience string
 	Name       string
 	Country    string
+	Published  bool
 }
 
 // Mock data for admin pages
@@ -1115,15 +1119,15 @@ var mockCustomers = []AdminCustomer{
 }
 
 var mockFarmShopFeedback = []FeedbackSample{
-	{Rating: 5, Comment: "The apple juice was absolutely delicious. Best I've ever had!", Date: "Jan 11, 2026", Name: "Maria Svensson", Country: "Sweden"},
-	{Rating: 4, Comment: "Lovely products, friendly service. Would love more variety.", Date: "Jan 8, 2026", Name: "Lisa Karlsson", Country: "Sweden"},
-	{Rating: 5, Comment: "Bought gifts for the whole family. Everyone loved them!", Date: "Jan 3, 2026", Name: "Anna Lindberg", Country: "Germany"},
+	{Rating: 5, Comment: "The apple juice was absolutely delicious. Best I've ever had!", Date: "Jan 11, 2026", Name: "Maria Svensson", Country: "Sweden", Published: true},
+	{Rating: 4, Comment: "Lovely products, friendly service. Would love more variety.", Date: "Jan 8, 2026", Name: "Lisa Karlsson", Country: "Sweden", Published: false},
+	{Rating: 5, Comment: "Bought gifts for the whole family. Everyone loved them!", Date: "Jan 3, 2026", Name: "Anna Lindberg", Country: "Germany", Published: true},
 }
 
 var mockExperienceFeedback = []FeedbackSample{
-	{Rating: 5, Comment: "The forest walk was magical. So peaceful and restorative.", Date: "Jan 10, 2026", Experience: "Forest Walk", Name: "Erik Johansson", Country: "Finland"},
-	{Rating: 5, Comment: "Best farm-to-table meal I've ever had. Authentic and delicious.", Date: "Jan 6, 2026", Experience: "Farm Dinner", Name: "Johan Berg", Country: "Finland"},
-	{Rating: 4, Comment: "Wonderful experience, though a bit cold! Bring warm clothes.", Date: "Dec 20, 2025", Experience: "Winter Walk", Name: "Anna Lindberg", Country: "Germany"},
+	{Rating: 5, Comment: "The forest walk was magical. So peaceful and restorative.", Date: "Jan 10, 2026", Experience: "Forest Walk", Name: "Erik Johansson", Country: "Finland", Published: true},
+	{Rating: 5, Comment: "Best farm-to-table meal I've ever had. Authentic and delicious.", Date: "Jan 6, 2026", Experience: "Farm Dinner", Name: "Johan Berg", Country: "Finland", Published: false},
+	{Rating: 4, Comment: "Wonderful experience, though a bit cold! Bring warm clothes.", Date: "Dec 20, 2025", Experience: "Winter Walk", Name: "Anna Lindberg", Country: "Germany", Published: false},
 }
 
 var mockMessages = []AdminMessage{
@@ -1449,37 +1453,93 @@ func handleAdminMessages(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// handleAdminUpdates renders the orchard updates overview
-func handleAdminUpdates(w http.ResponseWriter, r *http.Request) {
-	publishedCount := 0
-	draftCount := 0
-	for _, u := range mockAdminUpdates {
-		if u.Status == "published" {
-			publishedCount++
-		} else {
-			draftCount++
-		}
-	}
-
-	data := AdminUpdatesData{
-		Title:     "Orchard Updates",
-		ActiveNav: "updates",
-		Stats: UpdateStats{
-			Published: publishedCount,
-			Drafts:    draftCount,
+// handleAdminNewsletters renders the new newsletter editor and archive
+func handleAdminNewsletters(w http.ResponseWriter, r *http.Request) {
+	// Mock Data for the Archive List
+	updates := []struct {
+		Title    string
+		Status   string
+		Date     string
+		Audience string
+		Preview  string
+	}{
+		{
+			Title:    "Spring Harvest Prep",
+			Status:   "draft",
+			Date:     "Jan 14, 2026",
+			Audience: "adopters",
+			Preview:  "Getting ready for the upcoming season. Here's what you need to know about your trees...",
 		},
-		Updates: mockAdminUpdates,
+		{
+			Title:    "VIP Dinner Invite",
+			Status:   "published",
+			Date:     "Jan 13, 2026",
+			Audience: "vip",
+			Preview:  "You are cordially invited to our exclusive seasonal dinner...",
+		},
+		{
+			Title:    "Apple Tree Newsletter (Welcome series)",
+			Status:   "published",
+			Date:     "Jan 10, 2026",
+			Audience: "subscribers",
+			Preview:  "Welcome to the Öfvergårds family! We are delighted to have you...",
+		},
+		{
+			Title:    "Winter Care Tips",
+			Status:   "published",
+			Date:     "Dec 20, 2025",
+			Audience: "all",
+			Preview:  "How to care for your garden during the cold months. Protective measures...",
+		},
 	}
 
-	adminTemplates := template.Must(template.New("").Funcs(templateFuncs).ParseFiles(
+	data := struct {
+		Title     string
+		ActiveNav string
+		Updates   interface{}
+	}{
+		Title:     "Newsletters",
+		ActiveNav: "updates", // Highlight "Newsletters" nav
+		Updates:   updates,
+	}
+
+	t := template.Must(template.New("").Funcs(templateFuncs).ParseFiles(
 		"templates/admin-base.html",
-		"templates/admin-updates.html",
+		"templates/admin-newsletters.html",
 	))
-	err := adminTemplates.ExecuteTemplate(w, "admin-base", data)
+	err := t.ExecuteTemplate(w, "admin-base", data)
+
 	if err != nil {
 		log.Printf("Template error: %v", err)
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		http.Error(w, "Internal server error: "+err.Error(), http.StatusInternalServerError)
 	}
+}
+
+// handleAdminSystemTemplates renders the automated email templates
+func handleAdminSystemTemplates(w http.ResponseWriter, r *http.Request) {
+	data := struct {
+		Title     string
+		ActiveNav string
+	}{
+		Title:     "System Templates",
+		ActiveNav: "templates",
+	}
+
+	t := template.Must(template.New("").Funcs(templateFuncs).ParseFiles(
+		"templates/admin-base.html",
+		"templates/admin-templates.html",
+	))
+	err := t.ExecuteTemplate(w, "admin-base", data)
+
+	if err != nil {
+		log.Printf("Template error: %v", err)
+		http.Error(w, "Internal server error: "+err.Error(), http.StatusInternalServerError)
+	}
+}
+
+// handleAdminUpdates is deprecated, redirects to newsletters
+func handleAdminUpdates(w http.ResponseWriter, r *http.Request) {
+	handleAdminNewsletters(w, r)
 }
 
 // handleAdminFeedbackNew renders the new feedback overview page

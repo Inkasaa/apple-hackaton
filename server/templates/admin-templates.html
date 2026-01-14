@@ -1,0 +1,101 @@
+{{define "admin-content"}}
+<div class="mb-8">
+    <h1 class="text-2xl font-bold text-green-brand mb-2">System Templates</h1>
+    <p class="text-gray-600 font-sans text-sm">
+        Manage automated emails sent to users based on specific triggers and actions.
+    </p>
+</div>
+
+<div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden max-w-4xl">
+    <div class="p-4 bg-gray-50 border-b border-gray-100 flex justify-between items-center">
+        <p class="text-xs text-gray-500 font-bold uppercase tracking-wide">Automated Email Series</p>
+    </div>
+    <div class="divide-y divide-gray-100">
+        <!-- Template Item -->
+        <div class="p-6 hover:bg-warm transition-colors cursor-pointer group flex items-start justify-between gap-4">
+            <div>
+                <div class="flex items-center gap-3 mb-1">
+                    <h3 class="font-semibold text-lg text-gray-800 group-hover:text-green-brand">Adoption Confirmation
+                    </h3>
+                    <span
+                        class="px-2 py-0.5 rounded text-[10px] font-bold bg-green-100 text-green-700 uppercase">Active</span>
+                </div>
+                <p class="text-sm text-gray-500 mb-2">Sent immediately after a successful payment for a tree adoption.
+                </p>
+                <div class="flex gap-2 text-xs text-gray-400">
+                    <span>Subject: Welcome to the Family! 🍎</span>
+                    <span>•</span>
+                    <span>Last edited: 2 days ago</span>
+                </div>
+            </div>
+            <button
+                class="px-4 py-2 text-sm border border-gray-200 rounded-lg text-gray-600 hover:text-green-brand hover:border-green-brand bg-white transition-all">
+                Edit
+            </button>
+        </div>
+
+        <!-- Template Item -->
+        <div class="p-6 hover:bg-warm transition-colors cursor-pointer group flex items-start justify-between gap-4">
+            <div>
+                <div class="flex items-center gap-3 mb-1">
+                    <h3 class="font-semibold text-lg text-gray-800 group-hover:text-green-brand">Visit Booking Receipt
+                    </h3>
+                    <span
+                        class="px-2 py-0.5 rounded text-[10px] font-bold bg-green-100 text-green-700 uppercase">Active</span>
+                </div>
+                <p class="text-sm text-gray-500 mb-2">Sent to confirm a booked farm experience or tasting session.</p>
+                <div class="flex gap-2 text-xs text-gray-400">
+                    <span>Subject: Your visit to Öfvergårds</span>
+                    <span>•</span>
+                    <span>Last edited: 1 week ago</span>
+                </div>
+            </div>
+            <button
+                class="px-4 py-2 text-sm border border-gray-200 rounded-lg text-gray-600 hover:text-green-brand hover:border-green-brand bg-white transition-all">
+                Edit
+            </button>
+        </div>
+
+        <!-- Template Item -->
+        <div class="p-6 hover:bg-warm transition-colors cursor-pointer group flex items-start justify-between gap-4">
+            <div>
+                <div class="flex items-center gap-3 mb-1">
+                    <h3 class="font-semibold text-lg text-gray-800 group-hover:text-green-brand">Inquiry Auto-Reply</h3>
+                    <span
+                        class="px-2 py-0.5 rounded text-[10px] font-bold bg-green-100 text-green-700 uppercase">Active</span>
+                </div>
+                <p class="text-sm text-gray-500 mb-2">Immediate response when a user submits a "Personal Visit" inquiry
+                    form.</p>
+                <div class="flex gap-2 text-xs text-gray-400">
+                    <span>Subject: We received your request</span>
+                </div>
+            </div>
+            <button
+                class="px-4 py-2 text-sm border border-gray-200 rounded-lg text-gray-600 hover:text-green-brand hover:border-green-brand bg-white transition-all">
+                Edit
+            </button>
+        </div>
+
+        <!-- Template Item -->
+        <div class="p-6 hover:bg-warm transition-colors cursor-pointer group flex items-start justify-between gap-4">
+            <div>
+                <div class="flex items-center gap-3 mb-1">
+                    <h3 class="font-semibold text-lg text-gray-800 group-hover:text-green-brand">Post-Visit Follow-up
+                    </h3>
+                    <span
+                        class="px-2 py-0.5 rounded text-[10px] font-bold bg-gray-100 text-gray-500 uppercase">Paused</span>
+                </div>
+                <p class="text-sm text-gray-500 mb-2">Sent 24 hours after a scheduled visit to request feedback/review.
+                </p>
+                <div class="flex gap-2 text-xs text-gray-400">
+                    <span>Subject: How was your visit?</span>
+                </div>
+            </div>
+            <button
+                class="px-4 py-2 text-sm border border-gray-200 rounded-lg text-gray-600 hover:text-green-brand hover:border-green-brand bg-white transition-all">
+                Edit
+            </button>
+        </div>
+    </div>
+</div>
+{{end}}
